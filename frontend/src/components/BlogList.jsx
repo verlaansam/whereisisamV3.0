@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import AuthForm from "./AuthForm";
 
 export default function BlogList() {
   const [posts, setPosts] = useState([]);
@@ -26,6 +27,7 @@ export default function BlogList() {
             <p className="text-gray-700">{post.content.substring(0, 100)}...</p>
         </div>
         ))}
+      <AuthForm/>
     </div>
   );
 }

@@ -3,6 +3,14 @@ import BlogList from "./components/BlogList";
 import BlogDetail from "./components/BlogDetail";
 
 function App() {
+
+  const token = localStorage.getItem("accessToken");
+if (token) {
+  console.log("User is authenticated");
+} else {
+  // toon AuthForm
+}
+
   return (
     <Router>
       <Routes>

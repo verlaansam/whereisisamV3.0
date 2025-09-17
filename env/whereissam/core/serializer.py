@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from . models import *
+from core.models import Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,11 +29,12 @@ class SeastateSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author_username = serializers.CharField(source='author.username', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content', 'created_at']
+        fields = ['id', 'post', 'author', 'author_username', 'content', 'created_at']
+        read_only_fields = ['author', 'created_at']
 
 class PostSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)

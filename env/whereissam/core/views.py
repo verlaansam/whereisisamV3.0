@@ -4,6 +4,11 @@ from .serializer import (
     CategorySerializer, WindSpeedSerializer, WindDirectionSerializer, 
     SeastateSerializer, PostSerializer, CommentSerializer
 )
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -46,3 +51,24 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        email = request.data.get("email")  # nieuw veld
+
+        if not username or not password or not email:
+            return Response({"detail": "Username, password en email zijn verplicht."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"detail": "Gebruikersnaam bestaat al."}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=email).exists():
+            return Response({"detail": "Email bestaat al."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username=username, password=password, email=email)
+        return Response({"detail": "Account aangemaakt."}, status=status.HTTP_201_CREATED)
+    
+
