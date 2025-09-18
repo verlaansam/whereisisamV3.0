@@ -56,13 +56,29 @@ export default function BlogDetail() {
     <div className="p-6">
       <Link to="/" className="text-blue-600 hover:underline">← Terug</Link>
       <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
+      <p>{post.windspeed?.name}</p>
+      <p>{post.winddirection?.name}</p>
+      <p>{post.seastate?.name}</p>
+      <p className="text-gray-600">
+        Categorieën:{" "}
+        {post.categories && post.categories.length > 0 ? (
+          post.categories.map(cat => (
+            <span key={cat.id} className="mr-2">
+              {cat.name}
+            </span>
+          ))
+        ) : (
+          "Geen categorieën"
+        )}
+      </p>
       <p className="text-gray-500 mb-4">{new Date(post.created_at).toLocaleDateString()}</p>
 
       {post.image && (
-        <img src={`http://127.0.0.1:8000${post.image}`} alt={post.title} className="mb-4 w-full h-96 object-cover rounded" />
+        <img src={`${post.image}`} alt={post.title} className="mb-4 w-screen  object-cover rounded" />
       )}
 
       <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: post.content }} />
+      
 
       <h2 className="text-2xl font-semibold mb-2">Reacties</h2>
       {message && <p className="text-red-600 mb-2">{message}</p>}
