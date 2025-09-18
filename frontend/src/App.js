@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import BlogList from "./components/BlogList";
+import Home from "./components/Home";
 import BlogDetail from "./components/BlogDetail";
+import BlogList from "./components/BlogList";
+
 
 function App() {
 
@@ -14,7 +16,8 @@ if (token) {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<BlogList />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/posts" element={<BlogList />} />
         <Route path="/posts/:slug" element={<BlogDetail />} />
       </Routes>
     </Router>

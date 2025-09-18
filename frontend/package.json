@@ -9,9 +9,12 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
+    "framer-motion": "^12.23.15",
     "jquery": "^3.7.1",
+    "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-iframe": "^1.8.5",
     "react-router-dom": "^7.9.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
