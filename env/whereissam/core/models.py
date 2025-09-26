@@ -55,3 +55,23 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Reactie van {self.author} op {self.post}"
+
+class Album(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="albums")
+    post = models.ForeignKey("Post", on_delete=models.CASCADE, related_name="albums", null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    cover_image = models.ImageField(upload_to='album_covers/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.title} (Post: {self.post.title if self.post else 'Geen post'})"
+
+class Photo(models.Model):
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name="photos")
+    image = models.ImageField(upload_to="album_photos/")
+    caption = models.CharField(max_length=255, blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Foto in album: {self.album.title}"

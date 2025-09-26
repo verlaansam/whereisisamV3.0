@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions
-from .models import Category, WindSpeed, WindDirection, Seastate, Post, Comment
+from .models import Category, WindSpeed, WindDirection, Seastate, Post, Comment, Album, Photo
 from .serializer import (
     CategorySerializer, WindSpeedSerializer, WindDirectionSerializer, 
-    SeastateSerializer, PostSerializer, CommentSerializer
+    SeastateSerializer, PostSerializer, CommentSerializer, AlbumSerializer, PhotoSerializer
 )
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -51,6 +51,22 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class AlbumViewSet(viewsets.ModelViewSet):
+    queryset = Album.objects.all().order_by("-created_at")
+    serializer_class = AlbumSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class PhotoViewSet(viewsets.ModelViewSet):
+    queryset = Photo.objects.all().order_by("-uploaded_at")
+    serializer_class = PhotoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]

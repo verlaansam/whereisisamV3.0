@@ -1,6 +1,21 @@
 from django.contrib import admin
-from .models import Post, Category, WindSpeed, WindDirection, Seastate
-from .models import Post, Category, Comment
+from .models import Post, Category, WindSpeed, WindDirection, Seastate, Comment, Album, Photo
+
+class PhotoInline(admin.TabularInline):  # of StackedInline als je meer ruimte wilt
+    model = Photo
+    extra = 1
+
+class AlbumInline(admin.TabularInline):
+    model = Album
+    extra = 1
+
+@admin.register(Album)
+class AlbumAdmin(admin.ModelAdmin):
+    list_display = ("title", "author", "post", "created_at")
+    list_filter = ("author", "post", "created_at")
+    search_fields = ("title", "description")
+    inlines = [PhotoInline]
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -28,7 +43,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'windspeed', 'winddirection', 'seastate', 'created_at', 'image')
     list_filter = ('categories', 'windspeed', 'winddirection', 'seastate', 'author', 'created_at')
     search_fields = ('title', 'content')
-
+    inlines = [AlbumInline]
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):

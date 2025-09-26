@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
+
 export default function BlogDetail() {
   const { slug } = useParams();
   const [post, setPost] = useState(null);
@@ -74,12 +75,32 @@ export default function BlogDetail() {
       <p className="text-gray-500 mb-4">{new Date(post.created_at).toLocaleDateString()}</p>
 
       {post.image && (
-        <img src={`${post.image}`} alt={post.title} className="mb-4 w-screen  object-cover rounded" />
+        <img src={`${post.image}`} alt={post.title} className="mb-4 w-screen object-cover rounded" />
       )}
 
       <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: post.content }} />
-      
 
+      {/* 📸 Albums */}
+      {post.albums.map(album => (
+        <div key={album.id} className="rounded-lg shadow bg-white p-4 cursor-pointer hover:shadow-lg">
+          <Link to={`/albums/${album.id}`}>
+            {album.cover_image ? (
+              <img
+                src={album.cover_image}
+                alt={album.title}
+                className="w-full h-40 object-cover rounded mb-2"
+              />
+            ) : (
+              <div className="w-full h-40 bg-gray-200 rounded flex items-center justify-center mb-2">
+                <span className="text-gray-500">Geen cover</span>
+              </div>
+            )}
+            <h3 className="font-bold text-lg">{album.title}</h3>
+          </Link>
+        </div>
+      ))}
+
+      {/* 💬 Comments */}
       <h2 className="text-2xl font-semibold mb-2">Reacties</h2>
       {message && <p className="text-red-600 mb-2">{message}</p>}
 
@@ -101,7 +122,9 @@ export default function BlogDetail() {
         {comments.map(comment => (
           <div key={comment.id} className="border p-3 rounded">
             <p className="text-gray-700">{comment.content}</p>
-            <p className="text-gray-500 text-sm">— {comment.author_username}, {new Date(comment.created_at).toLocaleDateString()}</p>
+            <p className="text-gray-500 text-sm">
+              — {comment.author_username}, {new Date(comment.created_at).toLocaleDateString()}
+            </p>
           </div>
         ))}
       </div>
