@@ -54,14 +54,13 @@ export default function BlogDetail() {
   if (!post) return <p>Loading...</p>;
 
   return (
+    <div>
     <div className="p-6">
       <Link to="/" className="text-blue-600 hover:underline">← Terug</Link>
       <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
-      <p>{post.windspeed?.name}</p>
-      <p>{post.winddirection?.name}</p>
-      <p>{post.seastate?.name}</p>
+      <p>Een windje van {post.windspeed?.name} uit het {post.winddirection?.name}</p>
+      <p>met een {post.seastate?.name} zeetje</p>
       <p className="text-gray-600">
-        Categorieën:{" "}
         {post.categories && post.categories.length > 0 ? (
           post.categories.map(cat => (
             <span key={cat.id} className="mr-2">
@@ -73,6 +72,7 @@ export default function BlogDetail() {
         )}
       </p>
       <p className="text-gray-500 mb-4">{new Date(post.created_at).toLocaleDateString()}</p>
+      <hr className="my-4" />
 
       {post.image && (
         <img src={`${post.image}`} alt={post.title} className="mb-4 w-screen object-cover rounded" />
@@ -99,35 +99,38 @@ export default function BlogDetail() {
           </Link>
         </div>
       ))}
+    </div>
+    {/* 💬 Comments */}
+      <section className="shadow p-4 mt-4 w-screen">
+        <h2 className="text-2xl font-semibold mb-2">Reacties</h2>
+        <p className="text-gray-500">De beste stuurlui staan aan wal</p>
+        {message && <p className="text-red-600 mb-2">{message}</p>}
 
-      {/* 💬 Comments */}
-      <h2 className="text-2xl font-semibold mb-2">Reacties</h2>
-      {message && <p className="text-red-600 mb-2">{message}</p>}
+        <form onSubmit={handleCommentSubmit} className="mb-6">
+          <textarea
+            className="w-full border p-2 rounded mb-2"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder={token ? "Schrijf een reactie..." : "Login om te reageren"}
+            required
+            disabled={!token}
+          />
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={!token}>
+            Plaats reactie
+          </button>
+        </form>
 
-      <form onSubmit={handleCommentSubmit} className="mb-6">
-        <textarea
-          className="w-full border p-2 rounded mb-2"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder={token ? "Schrijf een reactie..." : "Login om te reageren"}
-          required
-          disabled={!token}
-        />
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={!token}>
-          Plaats reactie
-        </button>
-      </form>
-
-      <div className="space-y-4">
-        {comments.map(comment => (
-          <div key={comment.id} className="border p-3 rounded">
-            <p className="text-gray-700">{comment.content}</p>
-            <p className="text-gray-500 text-sm">
-              — {comment.author_username}, {new Date(comment.created_at).toLocaleDateString()}
-            </p>
-          </div>
-        ))}
-      </div>
+        <div className="space-y-4">
+          {comments.map(comment => (
+            <div key={comment.id} className="border p-3 rounded">
+              <p className="text-gray-700">{comment.content}</p>
+              <p className="text-gray-500 text-sm">
+                — {comment.author_username}, {new Date(comment.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
