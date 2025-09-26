@@ -50,18 +50,19 @@ export default function AlbumDetail() {
       <h2 className="text-2xl font-semibold mb-4">Foto’s</h2>
       {album.photos && album.photos.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {album.photos.map((photoUrl, idx) => (
+            {album.photos.map((photo, idx) => (
             <img
-              key={idx}
-              src={photoUrl}
-              alt={`Foto ${idx + 1}`}
-              className="w-full h-60 object-cover rounded shadow"
+                key={idx}
+                src={photo.image} // ⚡ hier gebruiken we de image property
+                alt={photo.caption || `Foto ${idx + 1}`}
+                className="w-full h-60 object-cover rounded shadow"
             />
-          ))}
+            ))}
         </div>
-      ) : (
+        ) : (
         <p className="text-gray-500">Geen foto’s beschikbaar.</p>
-      )}
+        )}
+
     </div>
   );
 }
