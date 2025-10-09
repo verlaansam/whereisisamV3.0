@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import TopNav from "./TopNav";
+import BottomNav from "./BottomNav";
+import { Bot } from "lucide-react";
 
 export default function BlogList() {
   const [posts, setPosts] = useState([]);
@@ -17,6 +20,7 @@ export default function BlogList() {
 
   return (
     <section className="-mt-12 bg-slate-50 rounded-3xl border-t-2 border-slate-300  p-4">
+      <TopNav />
       <h1 className="text-2xl font-bold mb-4">Logboek</h1>
 
       {/* 🔹 Grote tile */}
@@ -61,6 +65,7 @@ export default function BlogList() {
           </Link>
         ))}
       </div>
+      <BottomNav />
     </section>
   );
 }
