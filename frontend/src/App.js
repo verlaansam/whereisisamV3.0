@@ -4,16 +4,17 @@ import BlogDetail from "./components/BlogDetail";
 import BlogList from "./components/BlogList";
 import AlbumDetail from "./components/AlbumDetail";
 import AlbumList from "./components/AlbumList";
+import Profile from "./components/Profile";
+import AuthForm from "./components/AuthForm";
 
 
 function App() {
-
   const token = localStorage.getItem("accessToken");
-if (token) {
-  console.log("User is authenticated");
-} else {
-  // toon AuthForm
-}
+  if (token) {
+    console.log("User is authenticated");
+  } else {
+    // toon AuthForm
+  }
 
   return (
     <Router>
@@ -23,6 +24,8 @@ if (token) {
         <Route path="/posts/:slug" element={<BlogDetail />} />
         <Route path="/albums" element={<AlbumList />} />
         <Route path="/albums/:id" element={<AlbumDetail />} />
+        <Route path="/profiel" element={<Profile />} />
+        <Route path="/login" element={<AuthForm />} />
       </Routes>
     </Router>
   );

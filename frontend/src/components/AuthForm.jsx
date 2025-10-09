@@ -1,4 +1,6 @@
 import { useState } from "react";
+import TopNav from "./TopNav";
+import BottomNav from "./BottomNav";
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true); // true = login, false = register
@@ -68,7 +70,8 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 border rounded shadow mt-10">
+    <div className="max-w-md mx-auto  border rounded shadow mt-10">
+      <TopNav />
       <h2 className="text-2xl font-bold mb-4">{isLogin ? "Login" : "Register"}</h2>
       {message && <p className="mb-4 text-red-600">{message}</p>}
 
@@ -125,6 +128,7 @@ export default function AuthForm() {
           {isLogin ? "Registreer" : "Login"}
         </button>
       </p>
+      <BottomNav />
     </div>
   );
 }

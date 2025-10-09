@@ -1,7 +1,8 @@
 from rest_framework.routers import DefaultRouter
 from .views import (
     CategoryViewSet, WindSpeedViewSet, WindDirectionViewSet,
-    SeastateViewSet, PostViewSet, CommentViewSet, AlbumViewSet, PhotoViewSet
+    SeastateViewSet, PostViewSet, CommentViewSet, AlbumViewSet, PhotoViewSet,
+    RegisterView, ProfileView, ChangePasswordView
 )
 from django.urls import path
 from .views import RegisterView
@@ -20,4 +21,7 @@ router.register(r"photos", PhotoViewSet)
 urlpatterns = router.urls
 urlpatterns += [
     path('register/', RegisterView.as_view(), name='register'),
+    path("profile/", ProfileView.as_view(), name="profile"),
+    path("change-password/", ChangePasswordView.as_view(), name="change-password"),
 ]
+

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import TopNav from "./TopNav";
+import BottomNav from "./BottomNav";
 
 export default function AlbumList() {
   const [albums, setAlbums] = useState([]);
@@ -25,6 +27,7 @@ export default function AlbumList() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <TopNav />
         <Link to="/" className="text-blue-600 hover:underline">← Terug</Link>
       {albums.map((album) => (
         <div
@@ -69,6 +72,7 @@ export default function AlbumList() {
           </div>
         </div>
       ))}
+      <BottomNav />
     </div>
   );
 }
