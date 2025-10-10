@@ -165,7 +165,7 @@ const Profile = () => {
       </button>
       <button
         onClick={() => {
-          localStorage.removeItem("token");
+          localStorage.removeItem("accessToken");
           window.location.href = "/login";  // of gebruik Navigate
         }}
         className="w-full bg-red-600 text-white py-2 rounded mt-4  hover:bg-red-700"

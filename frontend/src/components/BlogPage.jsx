@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
-import { Bot } from "lucide-react";
 
 export default function BlogList() {
   const [posts, setPosts] = useState([]);
@@ -16,12 +15,10 @@ export default function BlogList() {
   if (!posts.length) return <p className="p-4">Geen posts beschikbaar</p>;
 
   const [latestPost, ...otherPosts] = posts; // meest recente
-  const smallPosts = otherPosts.slice(0, 3); // maximaal 3
 
   return (
-    <section className="-mt-12 bg-slate-50 rounded-3xl border-t-2 border-slate-300  p-4">
-      <h1 className="text-2xl font-bold mb-4">Logboek</h1>
-
+    <section className="mt-12 bg-slate-50 p-4">
+      <TopNav />
       {/* 🔹 Grote tile */}
       {latestPost && (
         <Link
@@ -42,9 +39,9 @@ export default function BlogList() {
         </Link>
       )}
 
-      {/* 🔹 Kleine list max 3 */}
-      <div className="space-y-4">
-        {smallPosts.map(post => (
+      {/* 🔹 Kleine list van alle */}
+      <article className="space-y-4">
+        {otherPosts.map(post => (
           <Link
             to={`/posts/${post.slug}`}
             key={post.id}
@@ -57,13 +54,14 @@ export default function BlogList() {
                 className="w-24 h-24 object-cover rounded mr-4 flex-shrink-0"
               />
             )}
-            <div>
+            <section>
               <h3 className="text-lg font-semibold">{post.title}</h3>
               <p className="text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.content }} />
-            </div>
+            </section>
           </Link>
         ))}
-      </div>
+      </article>
+      <BottomNav />
     </section>
   );
 }
