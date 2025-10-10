@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
+import { Navigate } from "react-router-dom";
+import { User } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api"; // pas aan indien nodig
+const MEDIA_URL = "http://localhost:8000";
 
 const Profile = () => {
   const [profile, setProfile] = useState({
@@ -20,6 +23,8 @@ const Profile = () => {
   });
 
   const token = localStorage.getItem("accessToken");
+
+  
 
   useEffect(() => {
     axios
@@ -69,83 +74,99 @@ const Profile = () => {
       .catch((err) => setMessage(err.response?.data?.detail || "Fout bij wijzigen wachtwoord."));
   };
 
+  if (!token) {
+    return <Navigate to="/login" replace />; 
+  }
+
   return (
     <div className="max-w-lg mx-auto mt-10 border rounded-lg shadow">
       <TopNav />
-      <h2 className="text-2xl font-bold mb-4 text-center">Profiel</h2>
+      <h2 className="text-2xl font-bold mb-4 mt-4 text-center">Profiel</h2>
 
-      {profile.avatar && (
-        <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-4 relative">
+        {profile.avatar ? (
           <img
-            src={profile.avatar}
+            src={`${MEDIA_URL}${profile.avatar}`}
             alt="Profielfoto"
-            className="w-24 h-24 rounded-full object-cover"
+            className="w-24 h-24 rounded-full object-cover shadow-lg ring-4 ring-blue-500"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center shadow-lg ring-4 ring-blue-500">
+            <User size={48} className="text-gray-500" />
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit}>
-  <label className="block mb-2">
-    Gebruikersnaam
-    <input
-      type="text"
-      name="username"
-      placeholder={profile.username || "Gebruikersnaam"}
-      disabled
-      className="w-full border p-2 rounded bg-gray-100 text-gray-600"
-    />
-  </label>
+        {/* Verborgen file input */}
+        <input
+          type="file"
+          accept="image/*"
+          id="avatarUpload"
+          onChange={handleFileChange}
+          className="hidden"
+        />
 
-  <label className="block mb-2">
-    Voornaam
-    <input
-      type="text"
-      name="first_name"
-      placeholder={profile.first_name || "Voornaam"}
-      onChange={handleChange}
-      className="w-full border p-2 rounded"
-    />
-  </label>
+        {/* Knop over de foto */}
+        <label
+          htmlFor="avatarUpload"
+          className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-full cursor-pointer shadow-md hover:bg-blue-700"
+        >
+          Wijzig
+        </label>
+      </div>
 
-  <label className="block mb-2">
-    Achternaam
-    <input
-      type="text"
-      name="last_name"
-      placeholder={profile.last_name || "Achternaam"}
-      onChange={handleChange}
-      className="w-full border p-2 rounded"
-    />
-  </label>
 
-  <label className="block mb-2">
-    Email
-    <input
-      type="email"
-      name="email"
-      placeholder={profile.email || "E-mail"}
-      onChange={handleChange}
-      className="w-full border p-2 rounded"
-    />
-  </label>
 
-  <label className="block mb-2">
-    Profielfoto
-    <input
-      type="file"
-      accept="image/*"
-      onChange={handleFileChange}
-      className="w-full border p-2 rounded"
-    />
-  </label>
+    <form onSubmit={handleSubmit} className="p-4">
+      <label className="block mb-2">
+        Gebruikersnaam
+        <input
+          type="text"
+          name="username"
+          placeholder={profile.username || "Gebruikersnaam"}
+          disabled
+          className="w-full border p-2 rounded bg-gray-100 text-gray-600"
+        />
+      </label>
 
-  <button
-    type="submit"
-    className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
-  >
-    Profiel Opslaan
-  </button>
-</form>
+      <label className="block mb-2">
+        Voornaam
+        <input
+          type="text"
+          name="first_name"
+          placeholder={profile.first_name || "Voornaam"}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+      </label>
+
+      <label className="block mb-2">
+        Achternaam
+        <input
+          type="text"
+          name="last_name"
+          placeholder={profile.last_name || "Achternaam"}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+      </label>
+
+      <label className="block mb-2">
+        Email
+        <input
+          type="email"
+          name="email"
+          placeholder={profile.email || "E-mail"}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+      </label>
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
+      >
+        Profiel Opslaan
+      </button>
+    </form>
 
 
       {message && (

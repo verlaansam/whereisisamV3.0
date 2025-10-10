@@ -4,7 +4,9 @@
 /node_modules
 /.pnp
 .pnp.js
-/whereissam/core/media
+
+# media
+/env/whereissam/media/
 
 # testing
 /coverage
