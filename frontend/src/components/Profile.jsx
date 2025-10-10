@@ -79,19 +79,19 @@ const Profile = () => {
   }
 
   return (
-    <div className="max-w-lg mx-auto mt-10 border rounded-lg shadow">
+    <section className="max-w-lg mx-auto mt-10 border rounded-lg  text-slate-700">
       <TopNav />
-      <h2 className="text-2xl font-bold mb-4 mt-4 text-center">Profiel</h2>
+      <h2 className="text-2xl font-bold mb-4 mt-4 text-center ">Profiel</h2>
 
-      <div className="flex justify-center mb-4 relative">
+      <article className="flex justify-center mb-4 relative">
         {profile.avatar ? (
           <img
             src={`${MEDIA_URL}${profile.avatar}`}
             alt="Profielfoto"
-            className="w-24 h-24 rounded-full object-cover shadow-lg ring-4 ring-blue-500"
+            className="w-24 h-24 rounded-full object-cover shadow-lg ring-4 ring-cyan-800"
           />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center shadow-lg ring-4 ring-blue-500">
+          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center shadow-lg ring-4 ring-cyan-800">
             <User size={48} className="text-gray-500" />
           </div>
         )}
@@ -108,14 +108,11 @@ const Profile = () => {
         {/* Knop over de foto */}
         <label
           htmlFor="avatarUpload"
-          className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-full cursor-pointer shadow-md hover:bg-blue-700"
+          className="absolute bottom-0 right-0 bg-cyan-800 text-white text-xs px-2 py-1 rounded-full cursor-pointer shadow-md hover:bg-cyan-700"
         >
           Wijzig
         </label>
-      </div>
-
-
-
+      </article>
     <form onSubmit={handleSubmit} className="p-4">
       <label className="block mb-2">
         Gebruikersnaam
@@ -162,18 +159,28 @@ const Profile = () => {
       </label>
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
+        className="w-full bg-cyan-800 text-white py-2 rounded mt-4 hover:bg-cyan-700"
       >
         Profiel Opslaan
       </button>
+      <button
+        onClick={() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";  // of gebruik Navigate
+        }}
+        className="w-full bg-red-600 text-white py-2 rounded mt-4  hover:bg-red-700"
+      >
+        Uitloggen
+    </button>
     </form>
+    
 
 
       {message && (
         <p className="text-center text-green-600 mt-4 font-medium">{message}</p>
       )}
       <BottomNav />
-    </div>
+    </section>
   );
 };
 

@@ -1,4 +1,4 @@
-import { Cloud, FileText, Image, User } from "lucide-react";
+import { Cloud, FileText, Image, User, House } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function BottomNav() {
@@ -13,6 +13,11 @@ export default function BottomNav() {
         <FileText className="w-8 h-8" />
         <span className="text-xs">Blog</span>
       </Link>
+
+      <Link to="/" className="flex flex-col items-center text-gray-600  hover:text-cyan-800">
+        <House className="w-8 h-8" />
+        <span className="text-xs">Home</span>
+      </Link> 
 
       <Link to="/albums" className="flex flex-col items-center text-gray-600 hover:text-cyan-800">
         <Image className="w-8 h-8" />

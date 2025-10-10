@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from rest_framework import status, permissions
 from django.contrib.auth import update_session_auth_hash
 from .models import Profile
+from django_filters.rest_framework import DjangoFilterBackend
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -46,15 +47,22 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['post']
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
+        # 🔑 Hier voeg je de post toe via de request data
+        post_id = self.request.data.get('post')
+        serializer.save(author=self.request.user, post_id=post_id)
 
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all().order_by("-created_at")

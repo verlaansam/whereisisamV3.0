@@ -32,11 +32,18 @@ class SeastateSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
+    author_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'post', 'author', 'author_username', 'content', 'created_at']
-        read_only_fields = ['author', 'created_at']
+        fields = ['id', 'content', 'author_username', 'author_avatar', 'created_at', 'post']
+
+    def get_author_avatar(self, obj):
+        request = self.context.get('request')
+        profile = getattr(obj.author, 'profile', None)  # veilig ophalen van profiel
+        if profile and profile.avatar:
+            return request.build_absolute_uri(profile.avatar.url)
+        return None
 
 
 class PhotoSerializer(serializers.ModelSerializer):
