@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
 import BottomNav from "./BottomNav";
 import TopNav from "./TopNav";
@@ -12,6 +12,7 @@ export default function BlogDetail() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const token = localStorage.getItem("accessToken");
 
@@ -54,7 +55,7 @@ export default function BlogDetail() {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!token) {
-      setMessage("Je moet ingelogd zijn om een comment te plaatsen.");
+      setMessage("Login of maak een account aan om een comment te plaatsen.");
       return;
     }
 
@@ -92,7 +93,7 @@ export default function BlogDetail() {
     <section className="">
       <TopNav />
       <article className="mt-10 mb-14 p-4 ">
-        <Link to="/" className="text-cyan-800 hover:underline">← Terug</Link>
+        <button onClick={() => navigate(-1)} className="text-cyan-800 hover:underline">← Terug</button>
         <section className="shadow rounded-3xl bg-white">
           {/* Post image */}
           {post.image && (
@@ -103,12 +104,12 @@ export default function BlogDetail() {
           <p className="text-gray-500 mb-4 pl-2">{new Date(post.created_at).toLocaleDateString()}</p>
           <p className="pl-2">Een woei van {post.windspeed?.name} uit {post.winddirection?.name} met een {post.seastate?.name} zee</p>
           <p></p>
-          <p className="text-gray-600 mb-2 bg-gray-200 p-2 rounded-3xl mx-2">
+          <p className="text-gray-600  bg-gray-100 p-2 rounded-3xl mx-2">
             {post.categories?.length > 0
               ? post.categories.map(cat => <span key={cat.id} className="mr-2 bg-cyan-800 text-slate-50 p-1 rounded-2xl">{cat.name}</span>)
               : "Geen categorieën"}
           </p>  
-          <hr className="my-4" />
+          <hr className="my-2" />
           {/* Post content */}
           <article className="prose max-w-none mb-6 px-2 pb-2" dangerouslySetInnerHTML={{ __html: post.content }} />
         </section>
@@ -141,7 +142,7 @@ export default function BlogDetail() {
               className="w-full border p-2 rounded mb-2"
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
-              placeholder={token ? "Schrijf een reactie..." : "Login om te reageren"}
+              placeholder={token ? "Schrijf een reactie..." : "Login of maak een account aan om een reactie te plaatsen."}
               required
               disabled={!token}
             />

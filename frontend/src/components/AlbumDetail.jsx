@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import TopNav from "./TopNav";
+import BottomNav from "./BottomNav";
+
 
 export default function AlbumDetail() {
   const { id } = useParams();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/albums/${id}/`)
@@ -27,27 +31,26 @@ export default function AlbumDetail() {
   if (error) return <p className="text-red-600">{error}</p>;
 
   return (
-    <div className="p-6">
-      <Link to="/" className="text-blue-600 hover:underline">← Terug</Link>
-
-      <h1 className="text-3xl font-bold mb-2">{album.title}</h1>
-      {album.description && <p className="text-gray-700 mb-4">{album.description}</p>}
-
-      {album.post && (
-        <p className="text-gray-600 mb-4">
-          Gekoppeld aan post: <Link to={`/post/${album.post}`}>{album.post_title}</Link>
-        </p>
-      )}
-
+    <section className="">
+      <TopNav />
+      <section className="p-4 mt-8">
+      <button onClick={() => navigate(-1)} className="text-cyan-800 hover:underline">← Terug</button>
       {album.cover_image && (
         <img
           src={album.cover_image}
           alt={album.title}
-          className="w-full max-h-96 object-cover rounded mb-6"
+          className="w-full max-h-36 object-cover rounded mb-6"
         />
       )}
+      <h1 className="text-3xl font-bold">{album.title}</h1>
+      {album.post && (
+        <p className="text-gray-600 mb-2">
+          Ook te zien bij: <Link to={`/post/${album.post}`}>{album.post_title}</Link>
+        </p>
+      )}
+      {album.description && <p className="text-gray-700 mb-4">{album.description}</p>}
 
-      <h2 className="text-2xl font-semibold mb-4">Foto’s</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-gray-600">Foto’s</h2>
       {album.photos && album.photos.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {album.photos.map((photo, idx) => (
@@ -62,7 +65,8 @@ export default function AlbumDetail() {
         ) : (
         <p className="text-gray-500">Geen foto’s beschikbaar.</p>
         )}
-
-    </div>
+        </section>
+    <BottomNav />
+    </section>
   );
 }

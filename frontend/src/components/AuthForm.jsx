@@ -72,6 +72,7 @@ export default function AuthForm() {
   return (
     <div className="max-w-md mx-auto  border rounded shadow mt-10">
       <TopNav />
+      <section className="p-6">
       <h2 className="text-2xl font-bold mb-4">{isLogin ? "Login" : "Register"}</h2>
       {message && <p className="mb-4 text-red-600">{message}</p>}
 
@@ -111,7 +112,7 @@ export default function AuthForm() {
           />
         </div>
 
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+        <button type="submit" className="w-full bg-cyan-800 text-white p-2 rounded">
           {isLogin ? "Login" : "Register"}
         </button>
       </form>
@@ -123,11 +124,12 @@ export default function AuthForm() {
             setIsLogin(!isLogin);
             setMessage("");
           }}
-          className="text-blue-600 underline"
+          className="text-cyan-800 underline"
         >
           {isLogin ? "Registreer" : "Login"}
         </button>
       </p>
+      </section>
       <BottomNav />
     </div>
   );
