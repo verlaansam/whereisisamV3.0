@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around z-40">
-      <Link to="/weer" className="flex flex-col items-center text-gray-600 hover:text-cyan-800">
+      <Link to="/weather" className="flex flex-col items-center text-gray-600 hover:text-cyan-800">
         <Cloud className="w-8 h-8" />
         <span className="text-xs">Weer</span>
       </Link>

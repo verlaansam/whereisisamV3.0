@@ -6,6 +6,7 @@ import AlbumDetail from "./components/AlbumDetail";
 import AlbumList from "./components/AlbumList";
 import Profile from "./components/Profile";
 import AuthForm from "./components/AuthForm";
+import Weather from "./components/Weather";
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/albums/:id" element={<AlbumDetail />} />
         <Route path="/profiel" element={<Profile />} />
         <Route path="/login" element={<AuthForm />} />
+        <Route path="/weather" element={<Weather />} />
       </Routes>
     </Router>
   );
