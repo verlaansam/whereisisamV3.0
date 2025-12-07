@@ -1,8 +1,9 @@
 from rest_framework import viewsets, permissions
-from .models import Category, WindSpeed, WindDirection, Seastate, Post, Comment, Album, Photo
+from .models import Category, WindSpeed, WindDirection, Seastate, Post, Comment, Album, Photo, WeatherVlieland
 from .serializer import (
     CategorySerializer, WindSpeedSerializer, WindDirectionSerializer, 
-    SeastateSerializer, PostSerializer, CommentSerializer, AlbumSerializer, PhotoSerializer, ProfileSerializer
+    SeastateSerializer, PostSerializer, CommentSerializer, AlbumSerializer, PhotoSerializer, ProfileSerializer,
+    WeatherVlielandSerializer
 )
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -79,6 +80,12 @@ class PhotoViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
+class WeatherVlielandViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = WeatherVlieland.objects.all()
+    serializer_class = WeatherVlielandSerializer
+    permission_classes = [permissions.AllowAny]
+
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -133,5 +140,3 @@ class ChangePasswordView(APIView):
         user.save()
         update_session_auth_hash(request, user)
         return Response({"detail": "Wachtwoord succesvol gewijzigd."})
-
-

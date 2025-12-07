@@ -2,6 +2,11 @@ import { useState } from "react";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
 
+const API_URL = process.env.REACT_APP_API_URL;
+if (!API_URL) {
+  throw new Error("Missing REACT_APP_API_URL environment variable");
+}
+
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true); // true = login, false = register
   const [username, setUsername] = useState("");
@@ -32,7 +37,7 @@ export default function AuthForm() {
     try {
       if (isLogin) {
         // Login via JWT
-        const res = await fetch("http://127.0.0.1:8000/api/token/", {
+        const res = await fetch(`${API_URL}/token/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
@@ -48,7 +53,7 @@ export default function AuthForm() {
         }
       } else {
         // Register via API
-        const res = await fetch("http://127.0.0.1:8000/api/register/", {
+        const res = await fetch(`${API_URL}/register/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password, email }),
@@ -70,68 +75,67 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto  border rounded shadow mt-10">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
-      <section className="p-6">
-      <h2 className="text-2xl font-bold mb-4">{isLogin ? "Login" : "Register"}</h2>
-      {message && <p className="mb-4 text-red-600">{message}</p>}
+      <section className="max-w-md mx-auto mt-16 p-6 bg-white/5 border border-white/10 rounded-2xl shadow">
+        <h2 className="text-2xl font-bold mb-4 text-white">{isLogin ? "Login" : "Register"}</h2>
+        {message && <p className="mb-4 text-rose-300">{message}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-1">Gebruikersnaam</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full border p-2 rounded"
-            required
-          />
-        </div>
-
-        {!isLogin && (
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-1">Email</label>
+            <label className="block mb-1 text-slate-200">Gebruikersnaam</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border p-2 rounded"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border border-white/10 bg-white/5 text-white p-2 rounded"
               required
             />
           </div>
-        )}
 
-        <div>
-          <label className="block mb-1">Wachtwoord</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border p-2 rounded"
-            required
-          />
-        </div>
+          {!isLogin && (
+            <div>
+              <label className="block mb-1 text-slate-200">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-white/10 bg-white/5 text-white p-2 rounded"
+                required
+              />
+            </div>
+          )}
 
-        <button type="submit" className="w-full bg-cyan-800 text-white p-2 rounded">
-          {isLogin ? "Login" : "Register"}
-        </button>
-      </form>
+          <div>
+            <label className="block mb-1 text-slate-200">Wachtwoord</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-white/10 bg-white/5 text-white p-2 rounded"
+              required
+            />
+          </div>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
-        {isLogin ? "Nog geen account?" : "Al een account?"}{" "}
-        <button
-          onClick={() => {
-            setIsLogin(!isLogin);
-            setMessage("");
-          }}
-          className="text-cyan-800 underline"
-        >
-          {isLogin ? "Registreer" : "Login"}
-        </button>
-      </p>
+          <button type="submit" className="w-full bg-cyan-700 hover:bg-cyan-600 text-white p-2 rounded">
+            {isLogin ? "Login" : "Register"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center text-sm text-slate-300">
+          {isLogin ? "Nog geen account?" : "Al een account?"}{" "}
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setMessage("");
+            }}
+            className="text-cyan-200 underline"
+          >
+            {isLogin ? "Registreer" : "Login"}
+          </button>
+        </p>
       </section>
       <BottomNav />
     </div>
   );
 }
-

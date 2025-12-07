@@ -3,27 +3,33 @@ import { Link } from "react-router-dom";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
 
+const API_URL = process.env.REACT_APP_API_URL;
+if (!API_URL) {
+  throw new Error("Missing REACT_APP_API_URL environment variable");
+}
+
 export default function BlogList() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/posts/")
+    fetch(`${API_URL}/posts/`)
       .then(res => res.json())
       .then(data => setPosts(data));
   }, []);
 
-  if (!posts.length) return <p className="p-4">Geen posts beschikbaar</p>;
+  if (!posts.length) return <p className="p-4 text-white">Geen posts beschikbaar</p>;
 
   const [latestPost, ...otherPosts] = posts; // meest recente
 
   return (
-    <section className="mt-12 bg-slate-50 p-4">
+    <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white mt-12">
       <TopNav />
+      <div className="p-4 max-w-5xl mx-auto">
       {/* 🔹 Grote tile */}
       {latestPost && (
         <Link
           to={`/posts/${latestPost.slug}`}
-          className="block mb-6 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition"
+          className="block mb-6 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition border border-white/10 bg-white/5"
         >
           {latestPost.image && (
             <img
@@ -32,9 +38,9 @@ export default function BlogList() {
               className="w-full h-72 object-cover"
             />
           )}
-          <div className="p-4 bg-white">
-            <h2 className="text-3xl font-bold mb-2">{latestPost.title}</h2>
-            <p className="text-gray-700 line-clamp-3" dangerouslySetInnerHTML={{ __html: latestPost.content }} />
+          <div className="p-4 bg-white/5">
+            <h2 className="text-3xl font-bold mb-2 text-white">{latestPost.title}</h2>
+            <p className="text-slate-200 line-clamp-3" dangerouslySetInnerHTML={{ __html: latestPost.content }} />
           </div>
         </Link>
       )}
@@ -45,7 +51,7 @@ export default function BlogList() {
           <Link
             to={`/posts/${post.slug}`}
             key={post.id}
-            className="flex items-center bg-white p-3 rounded-lg shadow hover:shadow-md transition"
+            className="flex items-center bg-white/5 p-3 rounded-lg shadow hover:shadow-md transition border border-white/10"
           >
             {post.image && (
               <img
@@ -55,12 +61,13 @@ export default function BlogList() {
               />
             )}
             <section>
-              <h3 className="text-lg font-semibold">{post.title}</h3>
-              <p className="text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <h3 className="text-lg font-semibold text-white">{post.title}</h3>
+              <p className="text-slate-200 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.content }} />
             </section>
           </Link>
         ))}
       </article>
+      </div>
       <BottomNav />
     </section>
   );

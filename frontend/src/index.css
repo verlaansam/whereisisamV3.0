@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Ensure the background spans the full viewport even before React content loads */
+html, body, #root {
+  min-height: 100%;
+  background: linear-gradient(to bottom, #0f172a, #0f172a 40%, #0b1225);
+  color: #e2e8f0;
+}

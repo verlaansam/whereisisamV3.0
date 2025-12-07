@@ -18,18 +18,20 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/posts" element={<BlogPage />} />
-        <Route path="/posts/:slug" element={<BlogDetail />} />
-        <Route path="/albums" element={<AlbumList />} />
-        <Route path="/albums/:id" element={<AlbumDetail />} />
-        <Route path="/profiel" element={<Profile />} />
-        <Route path="/login" element={<AuthForm />} />
-        <Route path="/weather" element={<Weather />} />
-      </Routes>
-    </Router>
+    <div className=" min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/posts" element={<BlogPage />} />
+          <Route path="/posts/:slug" element={<BlogDetail />} />
+          <Route path="/albums" element={<AlbumList />} />
+          <Route path="/albums/:id" element={<AlbumDetail />} />
+          <Route path="/profiel" element={<Profile />} />
+          <Route path="/login" element={<AuthForm />} />
+          <Route path="/weather" element={<Weather />} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

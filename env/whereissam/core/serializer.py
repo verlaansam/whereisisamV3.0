@@ -3,6 +3,7 @@ from . models import *
 from core.models import Comment
 from django.contrib.auth.models import User
 from .models import Profile
+from .models import WeatherVlieland
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -104,3 +105,21 @@ class ProfileSerializer(serializers.ModelSerializer):
             setattr(instance.user, attr, value)
         instance.user.save()
         return super().update(instance, validated_data)
+
+
+class WeatherVlielandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeatherVlieland
+        fields = [
+            "id",
+            "recorded_at",
+            "wind_direction",
+            "temperature",
+            "wind_speed",
+            "wind_gusts",
+            "sea_temperature",
+            "sight",
+            "wave_height",
+            "verwachting",
+            "weather_warnings",
+        ]

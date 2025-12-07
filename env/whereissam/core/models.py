@@ -77,6 +77,27 @@ class Photo(models.Model):
 
     def __str__(self):
         return f"Foto in album: {self.album.title}"
+
+class WeatherVlieland(models.Model):
+    recorded_at = models.DateTimeField(db_index=True)
+    wind_direction = models.CharField(max_length=50, null=True, blank=True)
+    temperature = models.FloatField(null=True, blank=True)
+    wind_speed = models.FloatField(null=True, blank=True)
+    wind_gusts = models.FloatField(null=True, blank=True)
+    sea_temperature = models.FloatField(null=True, blank=True)
+    sight = models.CharField(max_length=50, null=True, blank=True)
+    wave_height = models.FloatField(null=True, blank=True)
+    verwachting = models.TextField(blank=True, default="")
+    weather_warnings = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["-recorded_at"]
+        db_table = "weatherVlieland"
+        verbose_name = "Weather Vlieland"
+        verbose_name_plural = "Weather Vlieland"
+
+    def __str__(self):
+        return f"Vlieland {self.recorded_at:%Y-%m-%d %H:%M}"
     
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

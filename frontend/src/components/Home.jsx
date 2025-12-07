@@ -8,14 +8,14 @@ import AlbumsCarousel from './AlbumCarousel';
 
 export default function Home() {
   return (
-    <main className="relative">
+    <main className="relative  text-white">
         <TopNav />
         <section className="relative">
             <VesselFinder />
-            <div className="absolute top-96  z-20 w-screen bg-slate-50">
+            <div className="absolute top-96 z-20 w-screen">
             <BlogList />
             <AlbumsCarousel />
-            <p className='p-4'>opvulling</p>
+            <p className='p-4 text-slate-200'>opvulling</p>
             </div>
         </section>
         <BottomNav />

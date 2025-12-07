@@ -1,2 +1,6 @@
 env/whereissam/media/*
 env/whereissam/db.sqlite3
+.env
+env/.env
+env/whereissam/.env
+frontend/.env

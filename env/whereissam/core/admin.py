@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Category, WindSpeed, WindDirection, Seastate, Comment, Album, Photo
+from .models import Post, Category, WindSpeed, WindDirection, Seastate, Comment, Album, Photo, WeatherVlieland
 
 class PhotoInline(admin.TabularInline):  # of StackedInline als je meer ruimte wilt
     model = Photo
@@ -55,3 +55,18 @@ class CommentAdmin(admin.ModelAdmin):
     def content_short(self, obj):
         return obj.content[:50] + ("..." if len(obj.content) > 50 else "")
     content_short.short_description = "Commentaar"
+
+@admin.register(WeatherVlieland)
+class WeatherVlielandAdmin(admin.ModelAdmin):
+    list_display = (
+        "recorded_at",
+        "temperature",
+        "wind_direction",
+        "wind_speed",
+        "wind_gusts",
+        "sea_temperature",
+        "sight",
+        "wave_height",
+    )
+    list_filter = ("recorded_at",)
+    search_fields = ("weather_warnings", "verwachting")

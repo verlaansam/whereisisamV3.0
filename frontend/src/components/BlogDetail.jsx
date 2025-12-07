@@ -4,7 +4,10 @@ import { User } from "lucide-react";
 import BottomNav from "./BottomNav";
 import TopNav from "./TopNav";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = process.env.REACT_APP_API_URL;
+if (!API_URL) {
+  throw new Error("Missing REACT_APP_API_URL environment variable");
+}
 
 export default function BlogDetail() {
   const { slug } = useParams();

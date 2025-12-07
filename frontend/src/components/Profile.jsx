@@ -5,8 +5,11 @@ import BottomNav from "./BottomNav";
 import { Navigate } from "react-router-dom";
 import { User } from "lucide-react";
 
-const API_URL = "http://localhost:8000/api"; // pas aan indien nodig
-const MEDIA_URL = "http://localhost:8000";
+const API_URL = process.env.REACT_APP_API_URL;
+if (!API_URL) {
+  throw new Error("Missing REACT_APP_API_URL environment variable");
+}
+const MEDIA_URL = API_URL.replace(/\/api\/?$/, "");
 
 const Profile = () => {
   const [profile, setProfile] = useState({
@@ -79,11 +82,12 @@ const Profile = () => {
   }
 
   return (
-    <section className="max-w-lg mx-auto mt-10 border rounded-lg  text-slate-700">
+    <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
-      <h2 className="text-2xl font-bold mb-4 mt-4 text-center ">Profiel</h2>
+      <div className="max-w-10/12  mt-16 mx-4 border border-white/10 rounded-lg bg-white/5 px-4 shadow">
+      <h2 className="text-2xl font-bold mb-4 mt-2 text-center text-white">Profiel</h2>
 
-      <article className="flex justify-center mb-4 relative">
+      <article className="flex justify-center mb-4 relative w-">
         {profile.avatar ? (
           <img
             src={`${MEDIA_URL}${profile.avatar}`}
@@ -91,8 +95,8 @@ const Profile = () => {
             className="w-24 h-24 rounded-full object-cover shadow-lg ring-4 ring-cyan-800"
           />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center shadow-lg ring-4 ring-cyan-800">
-            <User size={48} className="text-gray-500" />
+          <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center shadow-lg ring-4 ring-cyan-800">
+            <User size={48} className="text-slate-200" />
           </div>
         )}
 
@@ -108,7 +112,7 @@ const Profile = () => {
         {/* Knop over de foto */}
         <label
           htmlFor="avatarUpload"
-          className="absolute bottom-0 right-0 bg-cyan-800 text-white text-xs px-2 py-1 rounded-full cursor-pointer shadow-md hover:bg-cyan-700"
+          className="absolute bottom-0 right-0 bg-cyan-700 text-white text-xs px-2 py-1 rounded-full cursor-pointer shadow-md hover:bg-cyan-600"
         >
           Wijzig
         </label>
@@ -121,7 +125,7 @@ const Profile = () => {
           name="username"
           placeholder={profile.username || "Gebruikersnaam"}
           disabled
-          className="w-full border p-2 rounded bg-gray-100 text-gray-600"
+          className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
 
@@ -132,7 +136,7 @@ const Profile = () => {
           name="first_name"
           placeholder={profile.first_name || "Voornaam"}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
 
@@ -143,7 +147,7 @@ const Profile = () => {
           name="last_name"
           placeholder={profile.last_name || "Achternaam"}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
 
@@ -154,12 +158,12 @@ const Profile = () => {
           name="email"
           placeholder={profile.email || "E-mail"}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
       <button
         type="submit"
-        className="w-full bg-cyan-800 text-white py-2 rounded mt-4 hover:bg-cyan-700"
+        className="w-full bg-cyan-700 text-white py-2 rounded mt-4 hover:bg-cyan-600"
       >
         Profiel Opslaan
       </button>
@@ -168,7 +172,7 @@ const Profile = () => {
           localStorage.removeItem("accessToken");
           window.location.href = "/login";  // of gebruik Navigate
         }}
-        className="w-full bg-red-600 text-white py-2 rounded mt-4  hover:bg-red-700"
+        className="w-full bg-red-600 text-white py-2 rounded mt-4 hover:bg-red-500"
       >
         Uitloggen
     </button>
@@ -177,8 +181,9 @@ const Profile = () => {
 
 
       {message && (
-        <p className="text-center text-green-600 mt-4 font-medium">{message}</p>
+        <p className="text-center text-green-300 mt-4 font-medium">{message}</p>
       )}
+      </div>
       <BottomNav />
     </section>
   );

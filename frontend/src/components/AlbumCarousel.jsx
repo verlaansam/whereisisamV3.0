@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+const API_URL = process.env.REACT_APP_API_URL;
+if (!API_URL) {
+  throw new Error("Missing REACT_APP_API_URL environment variable");
+}
+
 export default function AlbumsCarousel() {
   const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/albums/")
+    fetch(`${API_URL}/albums/`)
       .then(res => res.json())
       .then(data => {
         // sorteer op created_at desc en neem de laatste 5
@@ -14,17 +19,17 @@ export default function AlbumsCarousel() {
       });
   }, []);
 
-  if (!albums.length) return <p className="p-4">Geen albums beschikbaar</p>;
+  if (!albums.length) return <p className="p-4 text-white">Geen albums beschikbaar</p>;
 
   return (
-    <section className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Laatste albums</h2>
-      <div className="flex space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+    <section className="p-4 text-white">
+      <h2 className="text-2xl font-bold mb-4 text-white">Laatste albums</h2>
+      <div className="flex space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-white/10">
         {albums.map(album => (
           <Link
             to={`/albums/${album.id}`}
             key={album.id}
-            className="flex-shrink-0 w-60 rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+            className="flex-shrink-0 w-60 rounded-xl overflow-hidden shadow hover:shadow-lg transition border border-white/10 bg-white/5"
           >
             {album.cover_image ? (
               <img
@@ -37,8 +42,8 @@ export default function AlbumsCarousel() {
                 <span className="text-gray-500">Geen cover</span>
               </div>
             )}
-            <div className="p-2 bg-white">
-              <h3 className="font-semibold">{album.title}</h3>
+            <div className="p-2 bg-white/5">
+              <h3 className="font-semibold text-white">{album.title}</h3>
             </div>
           </Link>
         ))}
