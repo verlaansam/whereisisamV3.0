@@ -34,10 +34,21 @@ class SeastateSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
     author_avatar = serializers.SerializerMethodField()
+    post_title = serializers.CharField(source='post.title', read_only=True)
+    post_slug = serializers.CharField(source='post.slug', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'author_username', 'author_avatar', 'created_at', 'post']
+        fields = [
+            'id',
+            'content',
+            'author_username',
+            'author_avatar',
+            'created_at',
+            'post',
+            'post_title',
+            'post_slug',
+        ]
 
     def get_author_avatar(self, obj):
         request = self.context.get('request')
@@ -91,13 +102,14 @@ class PostSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.EmailField(source='user.email', required=False)
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
 
     class Meta:
         model = Profile
-        fields = ['username', 'email', 'first_name', 'last_name', 'avatar']
+        fields = ['username', 'user_id', 'email', 'first_name', 'last_name', 'avatar']
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})

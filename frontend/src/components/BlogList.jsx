@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import TopNav from "./TopNav";
-import BottomNav from "./BottomNav";
-import { Bot } from "lucide-react";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {

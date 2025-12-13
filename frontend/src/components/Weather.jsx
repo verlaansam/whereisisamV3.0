@@ -79,9 +79,7 @@ export default function Weather() {
       sight: weather.sight ?? weather.visibility ?? weather.zicht,
       expectation: weather.verwachting ?? weather.forecast ?? weather.expectation,
       warnings: weather.warnings ?? weather.warning ?? weather.weather_warnings,
-      updatedAt: weather.observed_at ?? weather.timestamp ?? weather.created_at,
-      windUnit: weather.wind_speed_unit ?? "m/s",
-      gustUnit: weather.wind_gust_unit ?? weather.wind_speed_unit ?? "m/s",
+      updatedAt: weather.recorded_at,
     };
   }, [weather]);
 
@@ -144,8 +142,7 @@ export default function Weather() {
           </p>
           <h1 className="text-3xl md:text-4xl font-bold text-white">Weer en getijden</h1>
           <p className="text-slate-200/80 mt-2">
-            Live vanuit de Django database. Backend haalt max. 16× per dag op uit Meteoserver;
-            deze pagina leest wanneer je wilt.
+            Live weer op vlieland. data van meteoserver
           </p>
           <p className="text-xs text-slate-200/70 mt-3">
             {loadingWeather ? "" : `Bijgewerkt: ${formatTimestamp(weatherMetrics.updatedAt)}`}
@@ -193,7 +190,7 @@ export default function Weather() {
                     ? weatherMetrics.windSpeed
                     : null
                 }
-                unit={weatherMetrics.windUnit}
+                unit='m/s'
               />
               <Metric
                 icon={Wind}
@@ -203,7 +200,7 @@ export default function Weather() {
                     ? weatherMetrics.gusts
                     : null
                 }
-                unit={weatherMetrics.gustUnit}
+                unit='m/s'
               />
               <Metric
                 icon={Waves}
@@ -215,19 +212,16 @@ export default function Weather() {
                 }
                 unit="m"
               />
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 shadow-md">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-white/10 p-3 text-cyan-200">
-                    <Eye className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm uppercase tracking-wide text-slate-200/70">Zicht</p>
-                    <p className="text-2xl font-semibold text-white">
-                      {weatherMetrics.sight ?? "—"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Metric
+                icon={Eye}
+                label="zicht"
+                value={
+                  weatherMetrics.sight !== undefined && weatherMetrics.sight !== null
+                    ? weatherMetrics.sight
+                    : null
+                }
+                unit="km"
+              />
             </div>
 
             <div className="rounded-2xl bg-white/5 border border-white/10 p-4 shadow-md">
