@@ -99,6 +99,26 @@ class WeatherVlieland(models.Model):
     def __str__(self):
         return f"Vlieland {self.recorded_at:%Y-%m-%d %H:%M}"
     
+class Location(models.Model):
+    location = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.location
+    
+class Tides(models.Model):
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="tides", null=True, blank=True)
+    tide_type = models.CharField(max_length=20)
+    waterheight = models.FloatField(null=True, blank=True)
+    timestamp = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        ordering = ["timestamp"]
+        verbose_name = "Tide"
+        verbose_name_plural = "Tides"
+
+    def __str__(self):
+        return f"{self.location} {self.tide_type} @ {self.timestamp}"
+    
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)

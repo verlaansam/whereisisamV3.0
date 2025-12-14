@@ -3,7 +3,7 @@ from . models import *
 from core.models import Comment
 from django.contrib.auth.models import User
 from .models import Profile
-from .models import WeatherVlieland
+from .models import WeatherVlieland, Location, Tides
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -135,3 +135,20 @@ class WeatherVlielandSerializer(serializers.ModelSerializer):
             "verwachting",
             "weather_warnings",
         ]
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ["id", "location"]
+
+
+class TideSerializer(serializers.ModelSerializer):
+    location = serializers.CharField(source="location.location", read_only=True)
+    type = serializers.CharField(source="tide_type", read_only=True)
+    height = serializers.FloatField(source="waterheight", read_only=True, allow_null=True)
+    time = serializers.DateTimeField(source="timestamp", read_only=True, allow_null=True)
+
+    class Meta:
+        model = Tides
+        fields = ["id", "location", "type", "height", "time"]

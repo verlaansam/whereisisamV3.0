@@ -1,9 +1,21 @@
 from rest_framework import viewsets, permissions
-from .models import Category, WindSpeed, WindDirection, Seastate, Post, Comment, Album, Photo, WeatherVlieland
+from .models import (
+    Category,
+    WindSpeed,
+    WindDirection,
+    Seastate,
+    Post,
+    Comment,
+    Album,
+    Photo,
+    WeatherVlieland,
+    Location,
+    Tides,
+)
 from .serializer import (
     CategorySerializer, WindSpeedSerializer, WindDirectionSerializer, 
     SeastateSerializer, PostSerializer, CommentSerializer, AlbumSerializer, PhotoSerializer, ProfileSerializer,
-    WeatherVlielandSerializer
+    WeatherVlielandSerializer, LocationSerializer, TideSerializer,
 )
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -84,6 +96,24 @@ class WeatherVlielandViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = WeatherVlieland.objects.all()
     serializer_class = WeatherVlielandSerializer
     permission_classes = [permissions.AllowAny]
+
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Location.objects.all().order_by("location")
+    serializer_class = LocationSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class TidesViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = TideSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        qs = Tides.objects.select_related("location").all().order_by("timestamp")
+        location_slug = self.request.query_params.get("location")
+        if location_slug:
+            qs = qs.filter(location__location__iexact=location_slug)
+        return qs
 
 
 class RegisterView(APIView):

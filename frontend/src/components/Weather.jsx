@@ -3,6 +3,8 @@ import { AlertTriangle, CloudSun, Eye, Waves, Wind } from "lucide-react";
 import BottomNav from "./BottomNav";
 import TopNav from "./TopNav";
 
+//python manage.py fetch_weather_vlieland max 5keer per dag in prod
+
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
@@ -108,6 +110,49 @@ export default function Weather() {
   }, []);
 
   useEffect(() => {
+    // Embed Windguru widget
+    const widgetId = "wg_fwdg_500860_100_1765737296177";
+    const container = document.getElementById(widgetId);
+    if (container) container.innerHTML = "";
+
+    // Avoid double-injecting in StrictMode/dev
+    if (window.__windguruWidgetLoaded) {
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+    script.id = `${widgetId}-script`;
+    script.src =
+      "https://www.windguru.cz/js/widget.php?" +
+      [
+        "s=500860",
+        "m=100",
+        `uid=${widgetId}`,
+        "wj=knots",
+        "tj=c",
+        "waj=m",
+        "tij=cm",
+        "odh=0",
+        "doh=24",
+        "fhours=240",
+        "hrsm=1",
+        "vt=forecasts",
+        "lng=nl",
+        "idbs=1",
+        "p=WINDSPD,GUST,SMER,TMPE,WCHILL,CDC,APCP1s,SLP",
+      ].join("&");
+    script.async = true;
+    document.body.appendChild(script);
+    window.__windguruWidgetLoaded = true;
+
+    return () => {
+      script.remove();
+      const widgetContainer = document.getElementById(widgetId);
+      if (widgetContainer) widgetContainer.innerHTML = "";
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const fetchTides = async () => {
       try {
@@ -151,6 +196,18 @@ export default function Weather() {
 
         <section className="grid gap-4 md:grid-cols-2">
           <div className="space-y-3">
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4 shadow-md">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="rounded-xl bg-white/10 p-3 text-cyan-200">
+                  <Wind className="h-6 w-6" />
+                </span>
+                <div>
+                  <p className="text-sm uppercase tracking-wide text-slate-200/70">Windguru</p>
+                  <p className="text-base text-slate-100">5-daagse wind en golf verwachting</p>
+                </div>
+              </div>
+
+            </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="rounded-full bg-cyan-500/15 p-3 text-cyan-200">
@@ -247,6 +304,8 @@ export default function Weather() {
                 </div>
               </div>
             </div>
+
+            
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl backdrop-blur">
@@ -300,13 +359,13 @@ export default function Weather() {
                     <p className="text-sm uppercase tracking-wide text-slate-200/70">
                       {event.type || event.state || "Getij"}
                     </p>
-                    <p className="text-lg font-semibold">
-                      {event.height !== undefined && event.height !== null ? `${event.height} m` : "—"}
-                    </p>
-                  </div>
-                  <p className="text-sm text-slate-200/80">
+                    <p className="text-sm text-slate-200/80">
                     {formatTimestamp(event.time || event.datetime || event.timestamp)}
                   </p>
+                  </div>
+                  <p className="text-lg font-semibold">
+                      {event.height !== undefined && event.height !== null ? `${event.height} m` : "—"}
+                    </p>
                 </div>
               ))}
             </div>

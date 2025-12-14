@@ -2,7 +2,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CategoryViewSet, WindSpeedViewSet, WindDirectionViewSet,
     SeastateViewSet, PostViewSet, CommentViewSet, AlbumViewSet, PhotoViewSet,
-    RegisterView, ProfileView, ChangePasswordView, WeatherVlielandViewSet
+    RegisterView, ProfileView, ChangePasswordView, WeatherVlielandViewSet,
+    LocationViewSet, TidesViewSet,
 )
 from django.urls import path
 from .views import RegisterView
@@ -17,6 +18,8 @@ router.register(r'comments', CommentViewSet)
 router.register(r"albums", AlbumViewSet)
 router.register(r"photos", PhotoViewSet)
 router.register(r"weather", WeatherVlielandViewSet, basename="weathervlieland")
+router.register(r"locations", LocationViewSet, basename="location")
+router.register(r"tides", TidesViewSet, basename="tides")
 
 
 urlpatterns = router.urls

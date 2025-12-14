@@ -1,5 +1,16 @@
 from django.contrib import admin
-from .models import Post, Category, WindSpeed, WindDirection, Seastate, Comment, Album, Photo, WeatherVlieland
+from .models import (
+    Post,
+    Category,
+    WindSpeed,
+    WindDirection,
+    Seastate,
+    Comment,
+    Album,
+    Photo,
+    WeatherVlieland,
+    Tides,
+)
 
 class PhotoInline(admin.TabularInline):  # of StackedInline als je meer ruimte wilt
     model = Photo
@@ -70,3 +81,11 @@ class WeatherVlielandAdmin(admin.ModelAdmin):
     )
     list_filter = ("recorded_at",)
     search_fields = ("weather_warnings", "verwachting")
+
+
+@admin.register(Tides)
+class TidesAdmin(admin.ModelAdmin):
+    list_display = ("location", "tide_type", "waterheight", "timestamp")
+    list_filter = ("location", "tide_type")
+    search_fields = ("location__location",)
+    ordering = ("location__location", "timestamp")
