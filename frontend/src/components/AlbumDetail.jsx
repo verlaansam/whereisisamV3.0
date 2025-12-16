@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
+import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -9,6 +10,7 @@ if (!API_URL) {
 }
 
 export default function AlbumDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ export default function AlbumDetail() {
   useEffect(() => {
     fetch(`${API_URL}/albums/${id}/`)
       .then(res => {
-        if (!res.ok) throw new Error("Album niet gevonden");
+        if (!res.ok) throw new Error(t("Album niet gevonden"));
         return res.json();
       })
       .then(data => {
@@ -31,14 +33,14 @@ export default function AlbumDetail() {
       });
   }, [id]);
 
-  if (loading) return <p>Laden...</p>;
+  if (loading) return <p>{t("Laden...")}</p>;
   if (error) return <p className="text-red-600">{error}</p>;
 
   return (
     <section className="">
       <TopNav />
       <section className="p-4 mt-8">
-      <button onClick={() => navigate(-1)} className="text-cyan-800 hover:underline">← Terug</button>
+      <button onClick={() => navigate(-1)} className="text-cyan-800 hover:underline">{t("← Terug")}</button>
       {album.cover_image && (
         <img
           src={album.cover_image}
@@ -49,25 +51,25 @@ export default function AlbumDetail() {
       <h1 className="text-3xl font-bold">{album.title}</h1>
       {album.post && (
         <p className="text-gray-600 mb-2">
-          Ook te zien bij: <Link to={`/post/${album.post}`}>{album.post_title}</Link>
+          {t("Ook te zien bij:")} <Link to={`/post/${album.post}`}>{album.post_title}</Link>
         </p>
       )}
       {album.description && <p className="text-gray-700 mb-4">{album.description}</p>}
 
-      <h2 className="text-2xl font-semibold mb-4 text-gray-600">Foto’s</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-gray-600">{t("Foto’s")}</h2>
       {album.photos && album.photos.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {album.photos.map((photo, idx) => (
             <img
                 key={idx}
                 src={photo.image} // ⚡ hier gebruiken we de image property
-                alt={photo.caption || `Foto ${idx + 1}`}
+                alt={photo.caption || `${t("Foto’s")} ${idx + 1}`}
                 className="w-full h-60 object-cover rounded shadow"
             />
             ))}
         </div>
         ) : (
-        <p className="text-gray-500">Geen foto’s beschikbaar.</p>
+        <p className="text-gray-500">{t("Geen foto’s beschikbaar.")}</p>
         )}
         </section>
     <BottomNav />

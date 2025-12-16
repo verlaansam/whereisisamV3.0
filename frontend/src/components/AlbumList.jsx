@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
+import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -10,6 +11,7 @@ if (!API_URL) {
 }
 
 export default function AlbumList() {
+  const { t } = useTranslation();
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,12 +24,12 @@ export default function AlbumList() {
         setLoading(false);
       })
       .catch((err) => {
-        setError("Fout bij ophalen van albums.");
+        setError(t("Fout bij ophalen van albums."));
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <p>Laden...</p>;
+  if (loading) return <p>{t("Laden...")}</p>;
   if (error) return <p>{error}</p>;
 
   return (
@@ -48,26 +50,26 @@ export default function AlbumList() {
               />
             ) : (
               <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl mb-3">
-                <span className="text-gray-500">Geen cover</span>
+                <span className="text-gray-500">{t("Geen cover")}</span>
               </div>
             )}
 
             <h2 className="text-xl font-semibold text-white">{album.title}</h2>
             <p className="text-slate-200 text-sm mt-2">{album.description}</p>
 
-            <h3 className="font-medium mt-3">Foto’s:</h3>
+            <h3 className="font-medium mt-3">{t("Foto’s")}:</h3>
             <div className="grid grid-cols-3 gap-2 mt-2">
               {album.photos.map((photo) => (
                 <img
                   key={photo.id}
                   src={photo.image}
-                  alt={photo.caption || "Foto"}
+                  alt={photo.caption || t("Foto’s")}
                   className="w-full h-20 object-cover rounded-lg"
                 />
               ))}
               {album.photos.length === 0 && (
                 <span className="text-slate-300 text-sm col-span-3">
-                  Geen foto’s
+                  {t("Geen foto’s")}
                 </span>
               )}
             </div>

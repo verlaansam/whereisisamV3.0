@@ -4,6 +4,7 @@ import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
 import { Navigate } from "react-router-dom";
 import { User, Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -12,6 +13,7 @@ if (!API_URL) {
 const MEDIA_URL = API_URL.replace(/\/api\/?$/, "");
 
 const Profile = () => {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState({
     username: "",
     email: "",
@@ -87,7 +89,7 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setMessage(res.data.detail))
-      .catch((err) => setMessage(err.response?.data?.detail || "Fout bij wijzigen wachtwoord."));
+      .catch((err) => setMessage(err.response?.data?.detail || t("Fout bij wijzigen wachtwoord.")));
   };
 
   if (!token) {
@@ -98,13 +100,13 @@ const Profile = () => {
     <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
       <div className="max-w-10/12  mt-16 mx-4 border border-white/10 rounded-lg bg-white/5 px-4 shadow mb-24 pb-2">
-      <h2 className="text-2xl font-bold mb-4 mt-2 text-center text-white">Profiel</h2>
+      <h2 className="text-2xl font-bold mb-4 mt-2 text-center text-white">{t("Profiel")}</h2>
 
       <article className="flex justify-center mb-4 relative w-">
         {profile.avatar ? (
           <img
             src={`${MEDIA_URL}${profile.avatar}`}
-            alt="Profielfoto"
+            alt={t("Profielfoto")}
             className="w-24 h-24 rounded-full object-cover shadow-lg ring-4 ring-cyan-800"
           />
         ) : (
@@ -127,45 +129,45 @@ const Profile = () => {
           htmlFor="avatarUpload"
           className="absolute bottom-0 right-0 bg-cyan-700 text-white text-xs px-2 py-1 rounded-full cursor-pointer shadow-md hover:bg-cyan-600"
         >
-          Wijzig
+          {t("Wijzig")}
         </label>
       </article>
     <form onSubmit={handleSubmit} className="p-4">
       <label className="block mb-2">
-        Gebruikersnaam
+        {t("Gebruikersnaam")}
         <input
           type="text"
           name="username"
-          placeholder={profile.username || "Gebruikersnaam"}
+          placeholder={profile.username || t("Gebruikersnaam")}
           disabled
           className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
 
       <label className="block mb-2">
-        Voornaam
+        {t("Voornaam")}
         <input
           type="text"
           name="first_name"
-          placeholder={profile.first_name || "Voornaam"}
+          placeholder={profile.first_name || t("Voornaam")}
           onChange={handleChange}
           className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
 
       <label className="block mb-2">
-        Achternaam
+        {t("Achternaam")}
         <input
           type="text"
           name="last_name"
-          placeholder={profile.last_name || "Achternaam"}
+          placeholder={profile.last_name || t("Achternaam")}
           onChange={handleChange}
           className="w-full border border-white/10 p-2 rounded bg-white/5 text-slate-200"
         />
       </label>
 
       <label className="block mb-2">
-        Email
+        {t("Email")}
         <input
           type="email"
           name="email"
@@ -178,7 +180,7 @@ const Profile = () => {
         type="submit"
         className="w-full bg-cyan-700 text-white py-2 rounded mt-4 hover:bg-cyan-600"
       >
-        Profiel Opslaan
+        {t("Profiel Opslaan")}
       </button>
       <button
         onClick={() => {
@@ -187,7 +189,7 @@ const Profile = () => {
         }}
         className="w-full bg-red-600 text-white py-2 rounded mt-4 hover:bg-red-500"
       >
-        Uitloggen
+        {t("Uitloggen")}
     </button>
     </form>
     
@@ -200,18 +202,18 @@ const Profile = () => {
       <section className="mt-8 border-t border-white/10 pt-4">
         <header className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-xl font-semibold text-white">Mijn reacties</h3>
-            <p className="text-slate-400 text-sm">Bewerk of verwijder je eigen comments.</p>
+            <h3 className="text-xl font-semibold text-white">{t("Mijn reacties")}</h3>
+            <p className="text-slate-400 text-sm">{t("Bewerk of verwijder je eigen comments.")}</p>
           </div>
           <span className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-200">
-            {userComments.length} {userComments.length === 1 ? "reactie" : "reacties"}
+            {userComments.length} {userComments.length === 1 ? t("reactie") : t("reacties")}
           </span>
         </header>
 
         <div className="space-y-3">
           {userComments.length === 0 && (
             <div className="text-slate-400 border border-dashed border-white/10 rounded-xl p-4 bg-white/5">
-              Je hebt nog geen reacties geplaatst.
+              {t("Je hebt nog geen reacties geplaatst.")}
             </div>
           )}
 
@@ -221,14 +223,14 @@ const Profile = () => {
               className="border border-white/10 bg-white/5 rounded-xl p-4 shadow-sm"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <span className="font-semibold text-white">{comment.post_title || "Post"}</span>
+              <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <span className="font-semibold text-white">{comment.post_title || t("Post")}</span>
                   {comment.post_slug && (
                     <a
                       href={`/posts/${comment.post_slug}`}
                       className="text-cyan-300 hover:text-cyan-200 underline"
                     >
-                      Bekijk post
+                      {t("Bekijk post")}
                     </a>
                   )}
                   <span className="px-2 py-1 text-xs rounded-full bg-white/10 border border-white/10">
@@ -238,8 +240,8 @@ const Profile = () => {
                 <div className="flex flex-col items-center gap-2">
                   <button
                     className="text-sm text-white bg-cyan-700 hover:bg-cyan-600 px-3 py-1 rounded-lg"
-                    aria-label="Bewerken"
-                    title="Bewerken"
+                    aria-label={t("Bewerken")}
+                    title={t("Bewerken")}
                     onClick={() => {
                       setEditingCommentId(comment.id);
                       setEditingContent(comment.content);
@@ -249,10 +251,10 @@ const Profile = () => {
                   </button>
                   <button
                     className="text-sm text-white bg-red-600 hover:bg-red-500 px-3 py-1 rounded-lg"
-                    aria-label="Verwijderen"
-                    title="Verwijderen"
+                    aria-label={t("Verwijderen")}
+                    title={t("Verwijderen")}
                     onClick={async () => {
-                      const confirmed = window.confirm("Weet je zeker dat je deze reactie wilt verwijderen?");
+                      const confirmed = window.confirm(t("Weet je zeker dat je deze reactie wilt verwijderen?"));
                       if (!confirmed) return;
                       try {
                         await axios.delete(`${API_URL}/comments/${comment.id}/`, {
@@ -261,7 +263,7 @@ const Profile = () => {
                         setUserComments((prev) => prev.filter((c) => c.id !== comment.id));
                       } catch (err) {
                         console.error(err);
-                        setMessage("Verwijderen mislukt.");
+                        setMessage(t("Verwijderen mislukt."));
                       }
                     }}
                   >
@@ -286,10 +288,10 @@ const Profile = () => {
                       );
                       setEditingCommentId(null);
                       setEditingContent("");
-                      setMessage("Reactie bijgewerkt.");
+                      setMessage(t("Reactie bijgewerkt."));
                     } catch (err) {
                       console.error(err);
-                      setMessage("Bijwerken mislukt.");
+                      setMessage(t("Bijwerken mislukt."));
                     }
                   }}
                 >
@@ -304,7 +306,7 @@ const Profile = () => {
                       type="submit"
                       className="bg-white text-slate-900 px-3 py-1 rounded-lg"
                     >
-                      Opslaan
+                      {t("Opslaan")}
                     </button>
                     <button
                       type="button"
@@ -314,7 +316,7 @@ const Profile = () => {
                         setEditingContent("");
                       }}
                     >
-                      Annuleren
+                      {t("Annuleren")}
                     </button>
                   </div>
                 </form>

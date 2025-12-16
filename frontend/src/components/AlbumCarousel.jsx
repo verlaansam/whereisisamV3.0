@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -7,6 +8,7 @@ if (!API_URL) {
 }
 
 export default function AlbumsCarousel() {
+  const { t } = useTranslation();
   const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
@@ -19,11 +21,11 @@ export default function AlbumsCarousel() {
       });
   }, []);
 
-  if (!albums.length) return <p className="p-4 text-white">Geen albums beschikbaar</p>;
+  if (!albums.length) return <p className="p-4 text-white">{t("Geen albums beschikbaar")}</p>;
 
   return (
     <section className="p-4 text-white">
-      <h2 className="text-2xl font-bold mb-4 text-white">Laatste albums</h2>
+      <h2 className="text-2xl font-bold mb-4 text-white">{t("Laatste albums")}</h2>
       <div className="flex space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-white/10">
         {albums.map(album => (
           <Link
@@ -39,7 +41,7 @@ export default function AlbumsCarousel() {
               />
             ) : (
               <div className="w-full h-40 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-500">Geen cover</span>
+                <span className="text-gray-500">{t("Geen cover")}</span>
               </div>
             )}
             <div className="p-2 bg-white/5">

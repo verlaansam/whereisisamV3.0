@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Share2, User } from "lucide-react";
 import BottomNav from "./BottomNav";
 import TopNav from "./TopNav";
+import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -10,6 +11,7 @@ if (!API_URL) {
 }
 
 export default function BlogDetail() {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -75,7 +77,7 @@ export default function BlogDetail() {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!token) {
-      setMessage("Login of maak een account aan om een comment te plaatsen.");
+      setMessage(t("Login of maak een account aan om een comment te plaatsen."));
       return;
     }
 
@@ -99,14 +101,14 @@ export default function BlogDetail() {
         setNewComment("");
         setMessage("");
       } else {
-        setMessage(data.detail || "Fout bij toevoegen comment");
+        setMessage(data.detail || t("Fout bij toevoegen comment"));
       }
     } catch (err) {
-      setMessage("Er is iets misgegaan.");
+      setMessage(t("Er is iets misgegaan."));
     }
   };
 
-  if (!post) return <p className="p-4 text-white">Loading...</p>;
+  if (!post) return <p className="p-4 text-white">{t("Laden...")}</p>;
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
@@ -116,7 +118,7 @@ export default function BlogDetail() {
           onClick={() => navigate(-1)}
           className="text-cyan-100 hover:text-white transition font-medium mb-4 inline-flex items-center gap-2"
         >
-          <span aria-hidden>←</span> Terug
+          <span aria-hidden>←</span> {t("← Terug")}
         </button>
 
         <section className="bg-slate-900/80 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur">
@@ -138,7 +140,7 @@ export default function BlogDetail() {
               <div className="flex flex-wrap gap-3 text-sm text-white/85">
                 {post.author?.username && (
                   <span className="text-whtie/85">
-                    Door {post.author.username}
+                    {t("Door")} {post.author.username}
                   </span>
                 )}
                 <span>{new Date(post.created_at).toLocaleDateString()}</span>
@@ -158,20 +160,24 @@ export default function BlogDetail() {
                   </span>
                 ))
               ) : (
-                <span className="text-slate-400 text-sm">Geen categorieën</span>
+                <span className="text-slate-400 text-sm">{t("Geen categorieën")}</span>
               )}
             </div>
 
             {(post.windspeed || post.winddirection || post.seastate) && (
               <p className="text-slate-200 text-sm md:text-base bg-white/5 border border-white/10 p-4 rounded-2xl">
-                Een woei van {post.windspeed?.name || "onbekend"} uit {post.winddirection?.name || "onbekend"} met een {post.seastate?.name || "onbekende"} zee.
+                {t("Een woei van {{wind}} uit {{direction}} met een {{sea}} zee.", {
+                  wind: post.windspeed?.name || t("onbekend"),
+                  direction: post.winddirection?.name || t("onbekend"),
+                  sea: post.seastate?.name || t("onbekende"),
+                })}
               </p>
             )}
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-2 text-white font-semibold">
                 <Share2 className="h-5 w-5" />
-                Deel dit verhaal
+                {t("Deel dit verhaal")}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -230,7 +236,7 @@ export default function BlogDetail() {
                   />
                 ) : (
                   <div className="w-full h-40 bg-white/5 rounded-lg flex items-center justify-center mb-3">
-                    <span className="text-slate-400">Geen cover</span>
+                    <span className="text-slate-400">{t("Geen cover")}</span>
                   </div>
                 )}
                 <h3 className="font-bold text-lg text-white">{album.title}</h3>
@@ -242,11 +248,11 @@ export default function BlogDetail() {
         <section className="shadow-2xl bg-slate-900/80 border border-white/10 rounded-3xl p-6 md:p-8 w-full">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
             <div>
-              <h2 className="text-2xl font-semibold text-white">Reacties</h2>
-              <p className="text-slate-400">De beste stuurlui staan aan wal</p>
+              <h2 className="text-2xl font-semibold text-white">{t("Reacties")}</h2>
+              <p className="text-slate-400">{t("De beste stuurlui staan aan wal")}</p>
             </div>
             <span className="px-3 py-1 text-sm rounded-full border border-white/10 bg-white/5 text-white">
-              {comments.length} {comments.length === 1 ? "reactie" : "reacties"}
+              {comments.length} {comments.length === 1 ? t("reactie") : t("reacties")}
             </span>
           </div>
           {message && <p className="text-red-300 mb-3">{message}</p>}
@@ -256,7 +262,9 @@ export default function BlogDetail() {
               className="w-full border border-white/10 bg-white/5 text-white p-3 rounded-xl focus:ring-2 focus:ring-cyan-600 focus:outline-none placeholder:text-slate-400"
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
-              placeholder={token ? "Schrijf een reactie..." : "Log eerst in om een reactie achter te laten."}
+              placeholder={
+                token ? t("Schrijf een reactie...") : t("Log eerst in om een reactie achter te laten.")
+              }
               required
               disabled={!token}
             />
@@ -265,14 +273,14 @@ export default function BlogDetail() {
               className="bg-white text-slate-900 px-4 py-2 rounded-xl disabled:bg-slate-500 disabled:text-white disabled:cursor-not-allowed hover:-translate-y-0.5 transition"
               disabled={!token}
             >
-              Plaats reactie
+              {t("Plaats reactie")}
             </button>
           </form>
 
           <div className="space-y-4">
             {comments.length === 0 && (
               <div className="border border-dashed border-white/10 bg-white/5 p-4 rounded-2xl text-slate-400">
-                Nog geen reacties. Wees de eerste!
+                {t("Nog geen reacties. Wees de eerste!")}
               </div>
             )}
             {comments.map(comment => (

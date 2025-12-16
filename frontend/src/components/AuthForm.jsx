@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
+import { useTranslation } from "react-i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -8,6 +9,7 @@ if (!API_URL) {
 }
 
 export default function AuthForm() {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true); // true = login, false = register
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -25,11 +27,11 @@ export default function AuthForm() {
     // Client-side validatie bij registratie
     if (!isLogin) {
       if (!isValidEmail(email)) {
-        setMessage("Voer een geldig e-mailadres in.");
+        setMessage(t("Voer een geldig e-mailadres in."));
         return;
       }
       if (password.length < 6) {
-        setMessage("Wachtwoord moet minimaal 6 tekens bevatten.");
+        setMessage(t("Wachtwoord moet minimaal 6 tekens bevatten."));
         return;
       }
     }
@@ -47,9 +49,9 @@ export default function AuthForm() {
         if (res.ok) {
           localStorage.setItem("accessToken", data.access);
           localStorage.setItem("refreshToken", data.refresh);
-          setMessage("Succesvol ingelogd!");
+          setMessage(t("Succesvol ingelogd!"));
         } else {
-          setMessage(data.detail || "Fout bij login");
+          setMessage(data.detail || t("Fout bij login"));
         }
       } else {
         // Register via API
@@ -61,16 +63,16 @@ export default function AuthForm() {
         const data = await res.json();
 
         if (res.ok) {
-          setMessage("Account aangemaakt! Je kunt nu inloggen.");
+          setMessage(t("Account aangemaakt! Je kunt nu inloggen."));
           setIsLogin(true);
           setEmail("");
           setPassword("");
         } else {
-          setMessage(data.detail || "Fout bij registreren");
+          setMessage(data.detail || t("Fout bij registreren"));
         }
       }
     } catch (error) {
-      setMessage("Er is iets misgegaan, probeer het opnieuw.");
+      setMessage(t("Er is iets misgegaan, probeer het opnieuw."));
     }
   };
 
@@ -78,12 +80,12 @@ export default function AuthForm() {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
       <section className="max-w-md mx-auto mt-16 p-6 bg-white/5 border border-white/10 rounded-2xl shadow">
-        <h2 className="text-2xl font-bold mb-4 text-white">{isLogin ? "Login" : "Register"}</h2>
+        <h2 className="text-2xl font-bold mb-4 text-white">{isLogin ? t("Login") : t("Register")}</h2>
         {message && <p className="mb-4 text-rose-300">{message}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-1 text-slate-200">Gebruikersnaam</label>
+            <label className="block mb-1 text-slate-200">{t("Gebruikersnaam")}</label>
             <input
               type="text"
               value={username}
@@ -95,7 +97,7 @@ export default function AuthForm() {
 
           {!isLogin && (
             <div>
-              <label className="block mb-1 text-slate-200">Email</label>
+              <label className="block mb-1 text-slate-200">{t("Email")}</label>
               <input
                 type="email"
                 value={email}
@@ -107,7 +109,7 @@ export default function AuthForm() {
           )}
 
           <div>
-            <label className="block mb-1 text-slate-200">Wachtwoord</label>
+            <label className="block mb-1 text-slate-200">{t("Wachtwoord")}</label>
             <input
               type="password"
               value={password}
@@ -118,12 +120,12 @@ export default function AuthForm() {
           </div>
 
           <button type="submit" className="w-full bg-cyan-700 hover:bg-cyan-600 text-white p-2 rounded">
-            {isLogin ? "Login" : "Register"}
+            {isLogin ? t("Login") : t("Register")}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-slate-300">
-          {isLogin ? "Nog geen account?" : "Al een account?"}{" "}
+          {isLogin ? t("Nog geen account?") : t("Al een account?")}{" "}
           <button
             onClick={() => {
               setIsLogin(!isLogin);
@@ -131,7 +133,7 @@ export default function AuthForm() {
             }}
             className="text-cyan-200 underline"
           >
-            {isLogin ? "Registreer" : "Login"}
+            {isLogin ? t("Registreer") : t("Login")}
           </button>
         </p>
       </section>

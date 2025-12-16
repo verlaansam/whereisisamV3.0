@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CloudSun, Eye, Waves, Wind } from "lucide-react";
 import BottomNav from "./BottomNav";
 import TopNav from "./TopNav";
+import { useTranslation } from "react-i18next";
 
 //python manage.py fetch_weather_vlieland max 5keer per dag in prod
 
@@ -62,6 +63,7 @@ const Metric = ({ icon: Icon, label, value, unit }) => (
 );
 
 export default function Weather() {
+  const { t } = useTranslation();
   const [weather, setWeather] = useState(null);
   const [weatherError, setWeatherError] = useState("");
   const [loadingWeather, setLoadingWeather] = useState(true);
@@ -185,12 +187,12 @@ export default function Weather() {
           <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80 mb-2">
             Vlieland · Vliehorst
           </p>
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Weer en getijden</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white">{t("Weer en getijden")}</h1>
           <p className="text-slate-200/80 mt-2">
-            Live weer op vlieland. data van meteoserver
+            {t("Live weer op vlieland. data van meteoserver")}
           </p>
           <p className="text-xs text-slate-200/70 mt-3">
-            {loadingWeather ? "" : `Bijgewerkt: ${formatTimestamp(weatherMetrics.updatedAt)}`}
+            {loadingWeather ? "" : `${t("Bijgewerkt")}: ${formatTimestamp(weatherMetrics.updatedAt)}`}
           </p>
         </header>
 
@@ -203,7 +205,7 @@ export default function Weather() {
                 </span>
                 <div>
                   <p className="text-sm uppercase tracking-wide text-slate-200/70">Windguru</p>
-                  <p className="text-base text-slate-100">5-daagse wind en golf verwachting</p>
+                  <p className="text-base text-slate-100">{t("5-daagse wind en golf verwachting")}</p>
                 </div>
               </div>
 
@@ -216,7 +218,7 @@ export default function Weather() {
                 <div>
                   <p className="text-sm text-slate-200/70">Vlieland · Vliehorst</p>
                   <p className="text-xl font-semibold text-white">
-                    {loadingWeather ? "Data laden..." : "Laatste meting"}
+                    {loadingWeather ? t("Data laden...") : t("Laatste meting")}
                   </p>
                 </div>
               </div>
@@ -231,7 +233,7 @@ export default function Weather() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Metric
                 icon={CloudSun}
-                label="Temperatuur"
+                label={t("Temperatuur")}
                 value={
                   weatherMetrics.temperature !== undefined && weatherMetrics.temperature !== null
                     ? weatherMetrics.temperature
@@ -241,7 +243,7 @@ export default function Weather() {
               />
               <Metric
                 icon={Wind}
-                label="Wind"
+                label={t("Wind")}
                 value={
                   weatherMetrics.windSpeed !== undefined && weatherMetrics.windSpeed !== null
                     ? weatherMetrics.windSpeed
@@ -251,7 +253,7 @@ export default function Weather() {
               />
               <Metric
                 icon={Wind}
-                label="Windstoten"
+                label={t("Windstoten")}
                 value={
                   weatherMetrics.gusts !== undefined && weatherMetrics.gusts !== null
                     ? weatherMetrics.gusts
@@ -261,7 +263,7 @@ export default function Weather() {
               />
               <Metric
                 icon={Waves}
-                label="Golfhoogte"
+                label={t("Golfhoogte")}
                 value={
                   weatherMetrics.waveHeight !== undefined && weatherMetrics.waveHeight !== null
                     ? weatherMetrics.waveHeight
@@ -271,7 +273,7 @@ export default function Weather() {
               />
               <Metric
                 icon={Eye}
-                label="zicht"
+                label={t("zicht")}
                 value={
                   weatherMetrics.sight !== undefined && weatherMetrics.sight !== null
                     ? weatherMetrics.sight
@@ -284,10 +286,10 @@ export default function Weather() {
             <div className="rounded-2xl bg-white/5 border border-white/10 p-4 shadow-md">
               <div className="flex items-center gap-2 text-amber-200">
                 <AlertTriangle className="h-5 w-5" />
-                <p className="text-sm uppercase tracking-wide">Weerwaarschuwingen</p>
+                <p className="text-sm uppercase tracking-wide">{t("Weerwaarschuwingen")}</p>
               </div>
               <p className="mt-2 text-sm text-slate-100">
-                {weatherMetrics.warnings || "Geen actieve waarschuwingen bekend."}
+                {weatherMetrics.warnings || t("Geen actieve waarschuwingen bekend.")}
               </p>
             </div>
 
@@ -297,9 +299,9 @@ export default function Weather() {
                   <CloudSun className="h-6 w-6" />
                 </span>
                 <div>
-                  <p className="text-sm uppercase tracking-wide text-slate-200/70">Verwachting</p>
+                  <p className="text-sm uppercase tracking-wide text-slate-200/70">{t("Verwachting")}</p>
                   <p className="text-base text-slate-100">
-                    {weatherMetrics.expectation || "Geen verwachting beschikbaar."}
+                    {weatherMetrics.expectation || t("Geen verwachting beschikbaar.")}
                   </p>
                 </div>
               </div>
@@ -315,11 +317,11 @@ export default function Weather() {
                   <Waves className="h-6 w-6" />
                 </span>
                 <div>
-                  <p className="text-sm text-slate-200/70">Getijden</p>
-                  <p className="text-xl font-semibold text-white">Kies station</p>
+                  <p className="text-sm text-slate-200/70">{t("Getijden")}</p>
+                  <p className="text-xl font-semibold text-white">{t("Kies station")}</p>
                 </div>
               </div>
-              {loadingTides && <span className="text-xs text-slate-200/70">Data laden...</span>}
+              {loadingTides && <span className="text-xs text-slate-200/70">{t("Data laden...")}</span>}
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -347,7 +349,7 @@ export default function Weather() {
 
             <div className="mt-4 space-y-3">
               {(!loadingTides && tideEvents.length === 0) && (
-                <p className="text-sm text-slate-200/70">Geen getijdedata beschikbaar voor deze locatie.</p>
+                <p className="text-sm text-slate-200/70">{t("Geen getijdedata beschikbaar voor deze locatie.")}</p>
               )}
 
               {tideEvents.slice(0, 6).map((event, idx) => (

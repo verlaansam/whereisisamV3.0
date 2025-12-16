@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -8,6 +9,7 @@ if (!API_URL) {
 }
 
 export default function BlogList() {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
@@ -16,14 +18,14 @@ export default function BlogList() {
       .then(data => setPosts(data));
   }, []);
 
-  if (!posts.length) return <p className="p-4 text-white">Geen posts beschikbaar</p>;
+  if (!posts.length) return <p className="p-4 text-white">{t("Geen posts beschikbaar")}</p>;
 
   const [latestPost, ...otherPosts] = posts; // meest recente
   const smallPosts = otherPosts.slice(0, 3); // maximaal 3
 
   return (
     <section className="-mt-12  rounded-3xl border-t-2 border-white/10 p-4 text-white bg-slate-900">
-      <h1 className="text-2xl font-bold mb-4 text-white ">Logboek</h1>
+      <h1 className="text-2xl font-bold mb-4 text-white ">{t("Logboek")}</h1>
 
       {/* 🔹 Grote tile */}
       {latestPost && (
