@@ -37,42 +37,63 @@ export default function AlbumDetail() {
   if (error) return <p className="text-red-600">{error}</p>;
 
   return (
-    <section className="">
+    <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
-      <section className="p-4 mt-8">
-      <button onClick={() => navigate(-1)} className="text-cyan-800 hover:underline">{t("← Terug")}</button>
-      {album.cover_image && (
-        <img
-          src={album.cover_image}
-          alt={album.title}
-          className="w-full max-h-36 object-cover rounded mb-6"
-        />
-      )}
-      <h1 className="text-3xl font-bold">{album.title}</h1>
-      {album.post && (
-        <p className="text-gray-600 mb-2">
-          {t("Ook te zien bij:")} <Link to={`/post/${album.post}`}>{album.post_title}</Link>
-        </p>
-      )}
-      {album.description && <p className="text-gray-700 mb-4">{album.description}</p>}
+      <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-16 pb-24 space-y-6 min-w-0 w-full">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-cyan-100 hover:text-white transition font-medium inline-flex items-center gap-2"
+        >
+          <span aria-hidden>←</span> {t("← Terug")}
+        </button>
 
-      <h2 className="text-2xl font-semibold mb-4 text-gray-600">{t("Foto’s")}</h2>
-      {album.photos && album.photos.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {album.photos.map((photo, idx) => (
+        <article className="bg-white/5 border border-white/10 rounded-3xl shadow-xl overflow-hidden">
+          {album.cover_image && (
             <img
-                key={idx}
-                src={photo.image} // ⚡ hier gebruiken we de image property
-                alt={photo.caption || `${t("Foto’s")} ${idx + 1}`}
-                className="w-full h-60 object-cover rounded shadow"
+              src={album.cover_image}
+              alt={album.title}
+              className="w-full h-64 md:h-80 object-cover"
             />
-            ))}
-        </div>
-        ) : (
-        <p className="text-gray-500">{t("Geen foto’s beschikbaar.")}</p>
-        )}
-        </section>
-    <BottomNav />
+          )}
+
+          <div className="p-5 md:p-7 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <h1 className="text-3xl font-bold text-white">{album.title}</h1>
+              {album.post && (
+                <p className="text-sm text-slate-200">
+                  {t("Ook te zien bij:")}{" "}
+                  <Link to={`/post/${album.post}`} className="text-cyan-200 underline">
+                    {album.post_title}
+                  </Link>
+                </p>
+              )}
+            </div>
+
+            {album.description && (
+              <p className="text-slate-200 leading-relaxed">{album.description}</p>
+            )}
+
+            <div className="space-y-3">
+              <h2 className="text-2xl font-semibold text-white">{t("Foto’s")}</h2>
+              {album.photos && album.photos.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {album.photos.map((photo, idx) => (
+                    <img
+                      key={idx}
+                      src={photo.image} // ⚡ hier gebruiken we de image property
+                      alt={photo.caption || `${t("Foto’s")} ${idx + 1}`}
+                      className="w-full h-56 object-cover rounded-xl shadow-lg border border-white/10"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-300">{t("Geen foto’s beschikbaar.")}</p>
+              )}
+            </div>
+          </div>
+        </article>
+      </div>
+      <BottomNav />
     </section>
   );
 }

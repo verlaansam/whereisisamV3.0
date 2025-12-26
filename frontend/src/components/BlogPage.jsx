@@ -24,9 +24,9 @@ export default function BlogList() {
   const [latestPost, ...otherPosts] = posts; // meest recente
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white mt-12">
+    <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white pt-16 pb-24">
       <TopNav />
-      <div className="p-4 max-w-5xl mx-auto">
+      <div className="p-4 md:p-6 lg:px-8 max-w-6xl mx-auto space-y-6 min-w-0 w-full">
       {/* 🔹 Grote tile */}
       {latestPost && (
         <Link
@@ -48,7 +48,7 @@ export default function BlogList() {
       )}
 
       {/* 🔹 Kleine list van alle */}
-      <article className="space-y-4">
+      <article className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 min-w-0 max-w-full">
         {otherPosts.map(post => (
           <Link
             to={`/posts/${post.slug}`}

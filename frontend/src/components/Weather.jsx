@@ -182,7 +182,7 @@ export default function Weather() {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
 
-      <main className="pt-16 pb-28 px-4 md:px-6 max-w-5xl mx-auto space-y-6">
+      <main className="pt-16 pb-28 px-4 md:px-6 lg:px-8 max-w-6xl lg:max-w-7xl mx-auto space-y-6 min-w-0 w-full">
         <header className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur">
           <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80 mb-2">
             Vlieland · Vliehorst
@@ -196,7 +196,7 @@ export default function Weather() {
           </p>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-[1.1fr,0.9fr]">
           <div className="space-y-3">
             <div className="rounded-2xl bg-white/5 border border-white/10 p-4 shadow-md">
               <div className="flex items-center gap-3 mb-2">

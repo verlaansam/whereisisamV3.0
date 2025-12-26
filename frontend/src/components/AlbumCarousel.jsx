@@ -24,14 +24,14 @@ export default function AlbumsCarousel() {
   if (!albums.length) return <p className="p-4 text-white">{t("Geen albums beschikbaar")}</p>;
 
   return (
-    <section className="p-4 text-white">
+    <section className="p-4 md:p-6 text-white rounded-3xl border border-white/10 bg-white/5 shadow-lg">
       <h2 className="text-2xl font-bold mb-4 text-white">{t("Laatste albums")}</h2>
-      <div className="flex space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-white/10">
+      <div className="flex space-x-3 overflow-x-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-white/10 sm:grid  lg:grid-cols-3 md:gap-4 md:space-x-0 md:overflow-visible min-w-0 max-w-full">
         {albums.map(album => (
           <Link
             to={`/albums/${album.id}`}
             key={album.id}
-            className="flex-shrink-0 w-60 rounded-xl overflow-hidden shadow hover:shadow-lg transition border border-white/10 bg-white/5"
+            className="flex-shrink-0 w-52 sm:w-full rounded-xl overflow-hidden shadow hover:shadow-lg transition border border-white/10 bg-white/5 min-w-0 max-w-full"
           >
             {album.cover_image ? (
               <img

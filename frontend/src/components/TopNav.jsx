@@ -58,77 +58,94 @@ export default function TopNav() {
     );
 
     return (
-        <main className="fixed top-0 w-full bg-slate-900/90 backdrop-blur border-b border-white/10 p-2 z-40 flex text-white">
-            {/* Hamburger (Mobile) */}
-            <button
-            aria-label="Toggle menu"
-            className="block md:hidden text-white"
-            onClick={() => setIsOpen(!isOpen)}
-            >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            {/* Menu */}
-            <ul
-            className={`absolute top-6 left-0 w-10/12 mx-8 rounded-xl bg-slate-800 text-white flex flex-col p-2 shadow-lg transition-all duration-500 ${
-                isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-5 pointer-events-none"
-            }`}
-            >
-                <li className="transition-all duration-500 delay-100">
-                    <Link
-                    to="/"
-                    className="block m-2 p-3 rounded-xl hover:bg-slate-700 hover:text-cyan-200"
-                    onClick={() => setIsOpen(false)}
-                    >
-                    {t("Home")}
-                    </Link>
-                </li>
-                <li className="transition-all duration-500 delay-200">
-                    <Link
-                    to="/login"
-                    className="block m-2 p-3 rounded-xl hover:bg-slate-700 hover:text-cyan-200"
-                    onClick={() => setIsOpen(false)}
-                    >
-                    {t("Login")}
-                    </Link>
-                </li>
-                <li className="transition-all duration-500 delay-300">
-                    <Link
-                    to="/register"
-                    className="block m-2 p-3 rounded-xl hover:bg-slate-700 hover:text-cyan-200"
-                    onClick={() => setIsOpen(false)}
-                    >
-                    {t("Register")}
-                    </Link>
-                </li>
-            </ul>
-            <h1 className="text-white pl-4 font-semibold">{t("Where is Sam")}</h1>
+        <header className="fixed top-0 inset-x-0 z-40 bg-slate-900/90 backdrop-blur border-b border-white/10 text-white">
+            <div className="mx-auto max-w-screen px-3 md:px-6 lg:px-8 flex flex-wrap items-center gap-3 md:gap-4 py-2 md:py-3 min-w-0">
+                {/* Hamburger (Mobile) */}
+                <button
+                    aria-label="Toggle menu"
+                    className="block md:hidden text-white"
+                    onClick={() => setIsOpen(!isOpen)}
+                >
+                    {isOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
 
-            <div className="ml-auto flex items-center gap-2 pr-2">
-                <button
-                    type="button"
-                    onClick={() => changeLanguage("nl")}
-                    className="overflow-hidden"
-                    aria-label="Nederlands"
+                <Link to="/" className="text-lg font-semibold tracking-tight hover:text-cyan-200 transition min-w-0 max-w-[45%] truncate">
+                    {t("Where is Sam")}
+                </Link>
+
+                <nav className="hidden md:flex items-center gap-1 ml-4 flex-wrap">
+                    {[
+                        { to: "/", label: t("Home") },
+                        { to: "/login", label: t("Login") },
+                        { to: "/register", label: t("Register") },
+                        { to: "/posts", label: t("Blog") },
+                        { to: "/albums", label: t("Foto's") },
+                        { to: "/weather", label: t("Weer") },
+                        { to: "/profiel", label: t("Profiel") },
+                    ].map((item) => (
+                        <Link
+                            key={item.to}
+                            to={item.to}
+                            className="px-3 py-2 rounded-xl text-sm font-medium text-slate-100 hover:text-cyan-200 hover:bg-white/5 transition"
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* Mobile dropdown */}
+                <ul
+                    className={`absolute left-1/2 top-14 w-[90%] max-w-md -translate-x-1/2 rounded-2xl bg-slate-800 text-white flex flex-col p-3 shadow-2xl transition-all duration-500 md:hidden ${
+                        isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"
+                    }`}
                 >
-                    <FlagNL active={currentLang === "nl"} />
-                </button>
-                <button
-                    type="button"
-                    onClick={() => changeLanguage("en")}
-                    className="overflow-hidden"
-                    aria-label="English"
-                >
-                    <FlagUK active={currentLang === "en"} />
-                </button>
-                <button
-                    type="button"
-                    onClick={() => changeLanguage("de")}
-                    className="overflow-hidden"
-                    aria-label="Deutsch"
-                >
-                    <FlagDE active={currentLang === "de"} />
-                </button>
+                    {[
+                        { to: "/", label: t("Home") },
+                        { to: "/login", label: t("Login") },
+                        { to: "/register", label: t("Register") },
+                        { to: "/posts", label: t("Blog") },
+                        { to: "/albums", label: t("Foto's") },
+                        { to: "/weather", label: t("Weer") },
+                    ].map((item, idx) => (
+                        <li key={item.to} className="transition-all duration-500" style={{ transitionDelay: `${50 * idx}ms` }}>
+                            <Link
+                                to={item.to}
+                                className="block m-1 p-3 rounded-xl hover:bg-slate-700 hover:text-cyan-200"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                {item.label}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+
+                <div className="ml-auto flex items-center gap-2 pr-2">
+                    <button
+                        type="button"
+                        onClick={() => changeLanguage("nl")}
+                        className="overflow-hidden"
+                        aria-label="Nederlands"
+                    >
+                        <FlagNL active={currentLang === "nl"} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => changeLanguage("en")}
+                        className="overflow-hidden"
+                        aria-label="English"
+                    >
+                        <FlagUK active={currentLang === "en"} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => changeLanguage("de")}
+                        className="overflow-hidden"
+                        aria-label="Deutsch"
+                    >
+                        <FlagDE active={currentLang === "de"} />
+                    </button>
+                </div>
             </div>
-        </main>
+        </header>
     );
 }

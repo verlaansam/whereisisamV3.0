@@ -24,7 +24,7 @@ export default function BlogList() {
   const smallPosts = otherPosts.slice(0, 3); // maximaal 3
 
   return (
-    <section className="-mt-12  rounded-3xl border-t-2 border-white/10 p-4 text-white bg-slate-900">
+    <section className="rounded-3xl border border-white/10 p-4 md:p-6 text-white bg-slate-900/80 shadow-lg backdrop-blur min-w-0">
       <h1 className="text-2xl font-bold mb-4 text-white ">{t("Logboek")}</h1>
 
       {/* 🔹 Grote tile */}
@@ -48,7 +48,7 @@ export default function BlogList() {
       )}
 
       {/* 🔹 Kleine list max 3 */}
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-0 sm:grid lg:grid-cols-2 sm:gap-4 min-w-0">
         {smallPosts.map(post => (
           <Link
             to={`/posts/${post.slug}`}

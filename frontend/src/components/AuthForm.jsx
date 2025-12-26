@@ -79,7 +79,8 @@ export default function AuthForm() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
-      <section className="max-w-md mx-auto mt-16 p-6 bg-white/5 border border-white/10 rounded-2xl shadow">
+      <section className="max-w-md lg:max-w-lg mx-auto mt-16 md:mt-20 px-4 md:px-0 pb-24 min-w-0 w-full">
+        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl shadow">
         <h2 className="text-2xl font-bold mb-4 text-white">{isLogin ? t("Login") : t("Register")}</h2>
         {message && <p className="mb-4 text-rose-300">{message}</p>}
 
@@ -136,6 +137,7 @@ export default function AuthForm() {
             {isLogin ? t("Registreer") : t("Login")}
           </button>
         </p>
+        </div>
       </section>
       <BottomNav />
     </div>

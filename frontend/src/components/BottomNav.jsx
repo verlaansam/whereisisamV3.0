@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 export default function BottomNav() {
   const { t } = useTranslation();
   return (
-    <nav className="fixed bottom-0 w-full bg-slate-900/90 backdrop-blur border-t border-white/10 p-2 flex justify-around z-40 text-white">
+    <nav className="fixed bottom-0 inset-x-0 w-full bg-slate-900/90 backdrop-blur border-t border-white/10 p-2 flex justify-around z-40 text-white md:hidden">
       <Link to="/weather" className="flex flex-col items-center text-slate-200 hover:text-cyan-200">
         <Cloud className="w-8 h-8" />
         <span className="text-xs">{t("Weer")}</span>

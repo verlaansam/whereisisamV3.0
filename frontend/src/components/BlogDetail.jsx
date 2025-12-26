@@ -113,7 +113,7 @@ export default function BlogDetail() {
   return (
     <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
-      <article className="max-w-4xl mx-auto mt-16 mb-20 px-4">
+      <article className="max-w-6xl lg:max-w-7xl mx-auto mt-16 mb-20 px-4 md:px-6 lg:px-8 min-w-0 w-full">
         <button
           onClick={() => navigate(-1)}
           className="text-cyan-100 hover:text-white transition font-medium mb-4 inline-flex items-center gap-2"

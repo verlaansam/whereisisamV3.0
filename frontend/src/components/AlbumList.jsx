@@ -35,12 +35,12 @@ export default function AlbumList() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 mb-20 px-4">
+      <section className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pt-16 pb-24 px-4 md:px-6 lg:px-8 min-w-0 max-w-full">
         {albums.map((album) => (
           <Link
             key={album.id}
             to={`/albums/${album.id}`} // hier geef je de route naar de album-detailpagina
-            className="rounded-2xl shadow-md bg-white/5 border border-white/10 p-4 m-2 hover:shadow-lg transition block"
+            className="rounded-2xl shadow-md bg-white/5 border border-white/10 p-4 hover:shadow-lg hover:-translate-y-1 transition block"
           >
             {album.cover_image ? (
               <img
