@@ -110,6 +110,12 @@ export default function BlogDetail() {
 
   if (!post) return <p className="p-4 text-white">{t("Laden...")}</p>;
 
+  const resolveImage = (imgUrl) => {
+    if (!imgUrl) return null;
+    if (imgUrl.startsWith('http')) return imgUrl;
+    return `${API_URL}${imgUrl}`;
+  };
+
   return (
     <section className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
       <TopNav />
@@ -125,7 +131,7 @@ export default function BlogDetail() {
           <div className="relative h-64 md:h-96">
             {post.image ? (
               <img
-                src={post.image}
+                src={resolveImage(post.image)}
                 alt={post.title}
                 className="absolute inset-0 w-full h-full object-cover"
               />
@@ -232,7 +238,7 @@ export default function BlogDetail() {
                   <img
                     src={album.cover_image}
                     alt={album.title}
-                    className="w-full h-40 object-cover rounded-lg mb-3"
+                    className="w-full h-40 object-contain rounded-lg mb-3 bg-white/5"
                   />
                 ) : (
                   <div className="w-full h-40 bg-white/5 rounded-lg flex items-center justify-center mb-3">

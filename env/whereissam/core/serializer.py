@@ -4,6 +4,8 @@ from core.models import Comment
 from django.contrib.auth.models import User
 from .models import Profile
 from .models import WeatherVlieland, Location, Tides
+import re
+from django.conf import settings
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -59,18 +61,37 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Photo
         fields = ["id", "album", "image", "caption", "uploaded_at"]
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 class AlbumSerializer(serializers.ModelSerializer):
     photos = PhotoSerializer(many=True, read_only=True)  # nested: alle foto's in album
     post_title = serializers.ReadOnlyField(source="post.title")
+    cover_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Album
         fields = ["id", "title", "description", "author", "post", "post_title", "cover_image", "created_at", "photos"]
+
+    def get_cover_image(self, obj):
+        request = self.context.get('request')
+        if obj.cover_image:
+            if request:
+                return request.build_absolute_uri(obj.cover_image.url)
+            return obj.cover_image.url
+        return None
 
 class AlbumMiniSerializer(serializers.ModelSerializer):
     photos = serializers.SerializerMethodField()
@@ -80,7 +101,16 @@ class AlbumMiniSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "cover_image", "photos"]
 
     def get_photos(self, obj):
-        return [photo.image.url for photo in obj.photos.all()[:3]]  # max 3 foto’s preview
+        request = self.context.get('request')
+        photos = obj.photos.all()[:3]
+        result = []
+        for photo in photos:
+            if photo.image:
+                if request:
+                    result.append(request.build_absolute_uri(photo.image.url))
+                else:
+                    result.append(photo.image.url)
+        return result
         
 
 class PostSerializer(serializers.ModelSerializer):
@@ -91,6 +121,9 @@ class PostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
     albums = AlbumMiniSerializer(many=True, read_only=True) 
+    image = serializers.SerializerMethodField()
+
+    content = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -100,6 +133,45 @@ class PostSerializer(serializers.ModelSerializer):
             'image', 'author', 'created_at', 'comments', 'albums'
         ]
 
+    def get_content(self, obj):
+        """Return content with root-relative image src paths converted to absolute URLs."""
+        request = self.context.get('request')
+        content = obj.content or ""
+        if not request:
+            return content
+        # Be defensive: ensure content is a str and handle quoted and unquoted src=
+        try:
+            if isinstance(content, bytes):
+                content = content.decode('utf-8', 'replace')
+            content = str(content)
+
+            pattern = re.compile(r'src=(["\']?)(/[^"\'\s>]*)\1?')
+
+            def repl(match):
+                quote = match.group(1) or '"'
+                path = match.group(2)
+                # leave absolute URLs untouched
+                if path.startswith('http'):
+                    return f'src={quote}{path}{quote}'
+                # convert root-relative paths (/media/..., /uploads/...) to absolute URLs
+                if path.startswith('/'):
+                    abs_url = request.build_absolute_uri(path)
+                    return f'src={quote}{abs_url}{quote}'
+                return match.group(0)
+
+            return pattern.sub(repl, content)
+        except Exception:
+            # If anything goes wrong, return original content unchanged
+            return content
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     user_id = serializers.IntegerField(source='user.id', read_only=True)
@@ -107,9 +179,19 @@ class ProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
 
+    avatar = serializers.SerializerMethodField()
+
     class Meta:
         model = Profile
         fields = ['username', 'user_id', 'email', 'first_name', 'last_name', 'avatar']
+
+    def get_avatar(self, obj):
+        request = self.context.get('request')
+        if obj.avatar:
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return obj.avatar.url
+        return None
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})

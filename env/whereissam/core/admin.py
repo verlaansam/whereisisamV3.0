@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django import forms
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from .models import (
     Post,
     Category,
@@ -55,6 +57,18 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ('categories', 'windspeed', 'winddirection', 'seastate', 'author', 'created_at')
     search_fields = ('title', 'content')
     inlines = [AlbumInline]
+
+
+class PostAdminForm(forms.ModelForm):
+    content = forms.CharField(widget=CKEditorUploadingWidget())
+
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+
+# Use CKEditorUploadingWidget for content in admin
+PostAdmin.form = PostAdminForm
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):

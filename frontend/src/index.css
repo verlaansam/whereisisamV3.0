@@ -15,3 +15,25 @@ html, body, #root {
 *, *::before, *::after {
   box-sizing: inherit;
 }
+
+/* Ensure images inside rich text keep their aspect ratio and fit the container */
+.prose img,
+.post-content img {
+  /* Never larger than 70% of viewport width while fitting container */
+  max-width: min(70vw, 100%);
+  width: auto; /* override inline width if present */
+  height: auto !important; /* keep aspect ratio */
+  display: block;
+  margin: 0.75rem auto;
+  object-fit: contain;
+  max-height: 80vh; /* avoid extremely tall images */
+}
+
+/* Media (video/iframe) also responsive */
+.prose iframe,
+.prose video,
+.post-content iframe,
+.post-content video {
+  max-width: 100%;
+  height: auto;
+}

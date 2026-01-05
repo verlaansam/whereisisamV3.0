@@ -1,4 +1,4 @@
-from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
@@ -32,7 +32,7 @@ class Seastate(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True) 
-    content = RichTextField()
+    content = RichTextUploadingField()
     categories = models.ManyToManyField(Category, blank=True)  # Meerdere categorieën
     windspeed = models.ForeignKey(WindSpeed, on_delete=models.SET_NULL, null=True, blank=True)
     winddirection = models.ForeignKey(WindDirection, on_delete=models.SET_NULL, null=True, blank=True)

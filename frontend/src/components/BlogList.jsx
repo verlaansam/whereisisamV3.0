@@ -2,6 +2,23 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+// Strip media tags so preview snippets don't display images or embedded media
+const stripMediaForPreview = (html) => {
+  if (!html) return "";
+  try {
+    let s = String(html);
+    // remove <figure>...</figure>
+    s = s.replace(/<figure[\s\S]*?<\/figure>/gi, "");
+    // remove <iframe>...</iframe> and <video>...</video>
+    s = s.replace(/<(iframe|video)[\s\S]*?<\/\1>/gi, "");
+    // remove any <img ...>
+    s = s.replace(/<img[^>]*>/gi, "");
+    return s;
+  } catch (e) {
+    return html;
+  }
+};
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
@@ -35,14 +52,14 @@ export default function BlogList() {
         >
           {latestPost.image && (
             <img
-              src={latestPost.image}
+              src={latestPost.image.startsWith('http') ? latestPost.image : `${API_URL}${latestPost.image}`}
               alt={latestPost.title}
-              className="w-full h-72 object-cover"
+              className="w-full  object-contain bg-white/5"
             />
           )}
-          <div className="p-4 bg-white/5">
+            <div className="p-4 bg-white/5">
             <h2 className="text-3xl font-bold mb-2 text-white">{latestPost.title}</h2>
-            <p className="text-slate-200 line-clamp-3" dangerouslySetInnerHTML={{ __html: latestPost.content }} />
+            <p className="text-slate-200 line-clamp-3" dangerouslySetInnerHTML={{ __html: stripMediaForPreview(latestPost.content) }} />
           </div>
         </Link>
       )}
@@ -57,14 +74,14 @@ export default function BlogList() {
           >
             {post.image && (
               <img
-                src={post.image}
+                src={post.image.startsWith('http') ? post.image : `${API_URL}${post.image}`}
                 alt={post.title}
-                className="w-24 h-24 object-cover rounded mr-4 flex-shrink-0"
+                className="w-24 h-24 object-contain rounded mr-4 flex-shrink-0 "
               />
             )}
-            <div>
+              <div>
               <h3 className="text-lg font-semibold text-white">{post.title}</h3>
-              <p className="text-slate-200 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <p className="text-slate-200 line-clamp-2" dangerouslySetInnerHTML={{ __html: stripMediaForPreview(post.content) }} />
             </div>
           </Link>
         ))}

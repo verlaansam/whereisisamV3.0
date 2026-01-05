@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'core',
     'corsheaders',
     'ckeditor',
+    'ckeditor_uploader',
     'django_browser_reload',
 ]
 
@@ -139,3 +140,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media' 
+
+# CKEditor upload path (in MEDIA_ROOT)
+CKEDITOR_UPLOAD_PATH = 'uploads/'
