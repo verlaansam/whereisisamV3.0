@@ -1,7 +1,24 @@
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from .models import Post, Album, Photo
+from .image_utils import convert_image_to_webp
 import os
+
+# 🔹 Convert images to WebP before save (pre_save to avoid recursion)
+@receiver(pre_save, sender=Post)
+def convert_post_image_to_webp(sender, instance, **kwargs):
+    if instance.image and not instance.image.name.endswith('.webp'):
+        convert_image_to_webp(instance.image)
+
+@receiver(pre_save, sender=Album)
+def convert_album_cover_to_webp(sender, instance, **kwargs):
+    if instance.cover_image and not instance.cover_image.name.endswith('.webp'):
+        convert_image_to_webp(instance.cover_image)
+
+@receiver(pre_save, sender=Photo)
+def convert_photo_image_to_webp(sender, instance, **kwargs):
+    if instance.image and not instance.image.name.endswith('.webp'):
+        convert_image_to_webp(instance.image)
 
 # 🔹 Post image verwijderen
 @receiver(post_delete, sender=Post)

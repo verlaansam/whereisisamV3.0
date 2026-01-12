@@ -143,3 +143,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # CKEditor upload path (in MEDIA_ROOT)
 CKEDITOR_UPLOAD_PATH = 'uploads/'
+
+# Image conversion to WebP with Pillow
+IMAGE_QUALITY = 85  # Balance between quality and file size
+CONVERT_TO_WEBP = True  # Convert all uploaded images to WebP format
