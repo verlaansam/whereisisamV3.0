@@ -30,7 +30,7 @@ export default function BlogList() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/posts/`)
+    fetch(`${API_URL}/api/posts/`)
       .then(res => res.json())
       .then(data => setPosts(data));
   }, []);

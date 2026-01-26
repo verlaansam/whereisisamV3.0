@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whereissam_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./env/whereissam/media:/app/media
+      - ./env/whereissam/db.sqlite3:/app/db.sqlite3
+    environment:
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+    networks:
+      - whereissam_network
+    # Uncomment to run in development mode with auto-reload
+    # command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost:8000
+    container_name: whereissam_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - whereissam_network
+
+networks:
+  whereissam_network:
+    driver: bridge

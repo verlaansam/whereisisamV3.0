@@ -1,0 +1,22 @@
+# Frontend Dockerfile - React Development
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Set environment variable for development
+ENV REACT_APP_API_URL=http://localhost:8000
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with legacy peer deps
+RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY . .
+
+# Expose port for dev server and debugging
+EXPOSE 3000
+
+# Start development server with hot-reload
+CMD ["npm", "start"]

@@ -25,7 +25,7 @@ export default function BlogDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await fetch(`${API_URL}/posts/${slug}/`);
+        const res = await fetch(`${API_URL}/api/posts/${slug}/`);
         const data = await res.json();
         setPost(data);
       } catch (err) {
@@ -40,7 +40,7 @@ export default function BlogDetail() {
     if (!post?.id) return;
     const fetchComments = async () => {
       try {
-        const res = await fetch(`${API_URL}/comments/?post=${post.id}`);
+        const res = await fetch(`${API_URL}/api/comments/?post=${post.id}`);
         const data = await res.json();
         if (Array.isArray(data)) {
           setComments(data);
@@ -82,7 +82,7 @@ export default function BlogDetail() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/comments/`, {
+      const res = await fetch(`${API_URL}/api/comments/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

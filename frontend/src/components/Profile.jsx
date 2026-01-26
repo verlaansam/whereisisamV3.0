@@ -40,7 +40,7 @@ const Profile = () => {
   useEffect(() => {
     if (!profile.user_id) return;
     axios
-      .get(`${API_URL}/comments/?author=${profile.user_id}`, {
+      .get(`${API_URL}/api/comments/?author=${profile.user_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUserComments(res.data.results || res.data || []))
@@ -238,7 +238,7 @@ const Profile = () => {
                           const confirmed = window.confirm(t("Weet je zeker dat je deze reactie wilt verwijderen?"));
                           if (!confirmed) return;
                           try {
-                            await axios.delete(`${API_URL}/comments/${comment.id}/`, {
+                            await axios.delete(`${API_URL}/api/comments/${comment.id}/`, {
                               headers: { Authorization: `Bearer ${token}` },
                             });
                             setUserComments((prev) => prev.filter((c) => c.id !== comment.id));
@@ -260,7 +260,7 @@ const Profile = () => {
                         e.preventDefault();
                         try {
                           const res = await axios.patch(
-                            `${API_URL}/comments/${comment.id}/`,
+                            `${API_URL}/api/comments/${comment.id}/`,
                             { content: editingContent },
                             { headers: { Authorization: `Bearer ${token}` } }
                           );

@@ -18,7 +18,7 @@ export default function AlbumList() {
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/albums/`)
+      .get(`${API_URL}/api/albums/`)
       .then((res) => {
         setAlbums(res.data);
         setLoading(false);

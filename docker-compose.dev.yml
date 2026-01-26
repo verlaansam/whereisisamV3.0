@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: whereissam_backend_dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./env/whereissam:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - PYTHONUNBUFFERED=1
+    networks:
+      - whereissam_network
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: whereissam_frontend_dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - WDS_SOCKET_HOST=localhost
+      - WDS_SOCKET_PORT=3000
+    depends_on:
+      - backend
+    networks:
+      - whereissam_network
+    command: npm start
+
+networks:
+  whereissam_network:
+    driver: bridge
