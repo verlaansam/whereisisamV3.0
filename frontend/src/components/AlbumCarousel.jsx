@@ -12,7 +12,7 @@ export default function AlbumsCarousel() {
   const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/albums/`)
+    fetch(`${API_URL}/albums/`)
       .then(res => res.json())
       .then(data => {
         // sorteer op created_at desc en neem de laatste 5

@@ -160,7 +160,7 @@ export default function Weather() {
       try {
         setLoadingTides(true);
         setTideError("");
-        const res = await fetch(`${API_URL}/tides/?location=${tideLocation}`);
+        const res = await fetch(`${API_URL}tides/?location=${tideLocation}`);
         if (!res.ok) throw new Error("Kon getijden niet laden");
         const data = await res.json();
         if (cancelled) return;

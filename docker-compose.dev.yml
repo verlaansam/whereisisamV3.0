@@ -14,7 +14,9 @@ services:
     environment:
       - DEBUG=True
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
       - PYTHONUNBUFFERED=1
+      - SECRET_KEY=django-insecure-dev-key-not-for-production
     networks:
       - whereissam_network
     command: python manage.py runserver 0.0.0.0:8000
@@ -31,7 +33,7 @@ services:
       - ./frontend/public:/app/public
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=http://127.0.0.1:8000/api/
       - WDS_SOCKET_HOST=localhost
       - WDS_SOCKET_PORT=3000
     depends_on:

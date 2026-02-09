@@ -10,30 +10,33 @@ services:
       - "8000:8000"
     volumes:
       - ./env/whereissam/media:/app/media
-      - ./env/whereissam/db.sqlite3:/app/db.sqlite3
+      - ./env/whereissam/staticfiles:/app/staticfiles
     environment:
-      - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-me-in-production}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      - DATABASE_URL=${DATABASE_URL:-}
     networks:
       - whereissam_network
-    # Uncomment to run in development mode with auto-reload
-    # command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=http://localhost:8000
+        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
     container_name: whereissam_frontend
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
     depends_on:
       - backend
     networks:
       - whereissam_network
+    restart: unless-stopped
 
 networks:
   whereissam_network:

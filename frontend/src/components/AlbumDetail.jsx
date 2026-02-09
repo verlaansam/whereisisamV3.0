@@ -18,7 +18,7 @@ export default function AlbumDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API_URL}/api/albums/${id}/`)
+    fetch(`${API_URL}albums/${id}/`)
       .then(res => {
         if (!res.ok) throw new Error(t("Album niet gevonden"));
         return res.json();

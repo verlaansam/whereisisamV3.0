@@ -1,4 +1,4 @@
-# Backend Dockerfile - Django with Gunicorn for Production
+# Backend Dockerfile - Production with Gunicorn
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -20,7 +20,7 @@ RUN useradd -m -u 1000 appuser
 
 # Copy and install requirements
 COPY ./env/whereissam/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt gunicorn psycopg2-binary
 
 # Copy Django project files
 COPY ./env/whereissam/manage.py .
@@ -36,5 +36,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Collect static files and run migrations, then start Gunicorn
+# Collect static files and run migrations
 CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn --bind 0.0.0.0:8000 --workers 4 --timeout 120 whereissam.wsgi:application"]
