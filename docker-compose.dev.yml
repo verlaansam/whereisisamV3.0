@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   backend:
     build:
@@ -12,11 +10,18 @@ services:
       - ./env/whereissam:/app
       - /app/__pycache__
     environment:
-      - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - DEBUG=${DEV_DEBUG:-True}
+      - ALLOWED_HOSTS=${DEV_ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      - CORS_ALLOWED_ORIGINS=${DEV_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      - CSRF_TRUSTED_ORIGINS=${DEV_CSRF_TRUSTED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
       - PYTHONUNBUFFERED=1
-      - SECRET_KEY=django-insecure-dev-key-not-for-production
+      - SECRET_KEY=${DEV_SECRET_KEY:-django-insecure-dev-key-not-for-production}
+      - DATABASE_URL=${DEV_DATABASE_URL:-}
+      - SECURE_SSL_REDIRECT=${DEV_SECURE_SSL_REDIRECT:-False}
+      - SESSION_COOKIE_SECURE=${DEV_SESSION_COOKIE_SECURE:-False}
+      - CSRF_COOKIE_SECURE=${DEV_CSRF_COOKIE_SECURE:-False}
+      - SECURE_HSTS_SECONDS=${DEV_SECURE_HSTS_SECONDS:-0}
+      - METEOSERVER_API_KEY=${DEV_METEOSERVER_API_KEY:-${METEOSERVER_API_KEY:-}}
     networks:
       - whereissam_network
     command: python manage.py runserver 0.0.0.0:8000
@@ -33,7 +38,7 @@ services:
       - ./frontend/public:/app/public
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://127.0.0.1:8000/api/
+      - REACT_APP_API_URL=${DEV_REACT_APP_API_URL:-http://127.0.0.1:8000/api/}
       - WDS_SOCKET_HOST=localhost
       - WDS_SOCKET_PORT=3000
     depends_on:

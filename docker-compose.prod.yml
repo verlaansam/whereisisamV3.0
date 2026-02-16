@@ -1,19 +1,17 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:16-alpine
     container_name: whereissam_db
     environment:
-      POSTGRES_DB: ${DB_NAME:-whereissam}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${PROD_DB_NAME:-whereissam}
+      POSTGRES_USER: ${PROD_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD:-changeme}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - whereissam_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${PROD_DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,28 +23,27 @@ services:
       dockerfile: Dockerfile.prod
     container_name: whereissam_backend
     environment:
-      - DEBUG=${DEBUG:-False}
-      - SECRET_KEY=${SECRET_KEY}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-changeme}@db:5432/${DB_NAME:-whereissam}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
-      - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-True}
-      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-True}
-      - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-True}
-      - SECURE_HSTS_SECONDS=${SECURE_HSTS_SECONDS:-31536000}
+      - DEBUG=${PROD_DEBUG:-False}
+      - SECRET_KEY=${PROD_SECRET_KEY}
+      - ALLOWED_HOSTS=${PROD_ALLOWED_HOSTS}
+      - DATABASE_URL=postgresql://${PROD_DB_USER:-postgres}:${PROD_DB_PASSWORD:-changeme}@db:5432/${PROD_DB_NAME:-whereissam}
+      - CORS_ALLOWED_ORIGINS=${PROD_CORS_ALLOWED_ORIGINS}
+      - CSRF_TRUSTED_ORIGINS=${PROD_CSRF_TRUSTED_ORIGINS}
+      - SECURE_SSL_REDIRECT=${PROD_SECURE_SSL_REDIRECT:-True}
+      - SESSION_COOKIE_SECURE=${PROD_SESSION_COOKIE_SECURE:-True}
+      - CSRF_COOKIE_SECURE=${PROD_CSRF_COOKIE_SECURE:-True}
+      - SECURE_HSTS_SECONDS=${PROD_SECURE_HSTS_SECONDS:-31536000}
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./env/whereissam/media:/app/media
       - ./env/whereissam/staticfiles:/app/staticfiles
-    ports:
-      - "8000:8000"
     networks:
       - whereissam_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      test: ["CMD", "python", "manage.py", "check"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -54,19 +51,22 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
       args:
-        - REACT_APP_API_URL=${REACT_APP_API_URL}
+        - REACT_APP_API_URL=${PROD_REACT_APP_API_URL}
     container_name: whereissam_frontend
-    environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
     depends_on:
       - backend
     ports:
-      - "3000:3000"
+      - "80:80"
     networks:
       - whereissam_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # Optional: Nginx reverse proxy for production (uncomment if not using DigitalOcean Load Balancer)
   # nginx:

@@ -9,6 +9,27 @@ if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 
+const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+async function parseJsonSafely(res) {
+  const contentType = res.headers.get("content-type") || "";
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("Expected JSON response from album endpoint");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON response from album endpoint");
+  }
+}
+
 export default function AlbumDetail() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -18,20 +39,17 @@ export default function AlbumDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API_URL}albums/${id}/`)
-      .then(res => {
-        if (!res.ok) throw new Error(t("Album niet gevonden"));
-        return res.json();
-      })
+    fetch(endpoint(`albums/${id}/`))
+      .then(parseJsonSafely)
       .then(data => {
         setAlbum(data);
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
+        setError(err.message === "HTTP 404" ? t("Album niet gevonden") : t("Fout bij ophalen van album."));
         setLoading(false);
       });
-  }, [id]);
+  }, [id, t]);
 
   if (loading) return <p>{t("Laden...")}</p>;
   if (error) return <p className="text-red-600">{error}</p>;

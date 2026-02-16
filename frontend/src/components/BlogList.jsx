@@ -19,21 +19,51 @@ const stripMediaForPreview = (html) => {
   }
 };
 
+const toPlainPreviewText = (html) => {
+  const withoutMedia = stripMediaForPreview(html);
+  return String(withoutMedia).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+};
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 
+const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+async function parseJsonSafely(res) {
+  const contentType = res.headers.get("content-type") || "";
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("Expected JSON response from posts endpoint");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON response from posts endpoint");
+  }
+}
+
 export default function BlogList() {
   const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/posts/`)
-      .then(res => res.json())
-      .then(data => setPosts(data));
+    fetch(endpoint("posts/"))
+      .then(parseJsonSafely)
+      .then(data => setPosts(Array.isArray(data) ? data : []))
+      .catch(() => setError(true));
   }, []);
+
+  if (error) return <p className="p-4 text-red-300">{t("Fout bij ophalen van posts.")}</p>;
 
   if (!posts.length) return <p className="p-4 text-white">{t("Geen posts beschikbaar")}</p>;
 
@@ -54,12 +84,13 @@ export default function BlogList() {
             <img
               src={latestPost.image.startsWith('http') ? latestPost.image : `${API_URL}${latestPost.image}`}
               alt={latestPost.title}
-              className="w-full  object-contain bg-white/5"
+              className="w-full h-72 object-cover"
             />
           )}
-            <div className="p-4 bg-white/5">
-            <h2 className="text-3xl font-bold mb-2 text-white">{latestPost.title}</h2>
-            <p className="text-slate-200 line-clamp-3" dangerouslySetInnerHTML={{ __html: stripMediaForPreview(latestPost.content) }} />
+          <div className="p-3 bg-white/5">
+            <p className="text-slate-200 text-sm line-clamp-2">
+              {toPlainPreviewText(latestPost.content)}
+            </p>
           </div>
         </Link>
       )}

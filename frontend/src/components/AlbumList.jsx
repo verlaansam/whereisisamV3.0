@@ -10,6 +10,8 @@ if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 
+const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
 export default function AlbumList() {
   const { t } = useTranslation();
   const [albums, setAlbums] = useState([]);
@@ -18,16 +20,17 @@ export default function AlbumList() {
 
   useEffect(() => {
     axios
-       .get(`${API_URL}/albums/`)
+      .get(endpoint("albums/"))
       .then((res) => {
-        setAlbums(res.data);
+        setAlbums(Array.isArray(res.data) ? res.data : []);
         setLoading(false);
       })
       .catch((err) => {
-        setError(t("Fout bij ophalen van albums."));
+        const status = err?.response?.status;
+        setError(status ? `${t("Fout bij ophalen van albums.")} (${status})` : t("Fout bij ophalen van albums."));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   if (loading) return <p>{t("Laden...")}</p>;
   if (error) return <p>{error}</p>;
@@ -59,7 +62,7 @@ export default function AlbumList() {
 
             <h3 className="font-medium mt-3">{t("Foto’s")}:</h3>
             <div className="grid grid-cols-3 gap-2 mt-2">
-              {album.photos.map((photo) => (
+              {(album.photos || []).map((photo) => (
                 <img
                   key={photo.id}
                   src={photo.image}
@@ -67,7 +70,7 @@ export default function AlbumList() {
                   className="w-full h-20 object-cover rounded-lg"
                 />
               ))}
-              {album.photos.length === 0 && (
+              {(!album.photos || album.photos.length === 0) && (
                 <span className="text-slate-300 text-sm col-span-3">
                   {t("Geen foto’s")}
                 </span>

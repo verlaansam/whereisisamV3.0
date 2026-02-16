@@ -9,15 +9,58 @@ if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 
+const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+const stripMediaForPreview = (html) => {
+  if (!html) return "";
+  try {
+    let s = String(html);
+    s = s.replace(/<figure[\s\S]*?<\/figure>/gi, "");
+    s = s.replace(/<(iframe|video)[\s\S]*?<\/\1>/gi, "");
+    s = s.replace(/<img[^>]*>/gi, "");
+    return s;
+  } catch {
+    return html;
+  }
+};
+
+const toPlainPreviewText = (html) => {
+  const withoutMedia = stripMediaForPreview(html);
+  return String(withoutMedia).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+};
+
+async function parseJsonSafely(res) {
+  const contentType = res.headers.get("content-type") || "";
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("Expected JSON response from posts endpoint");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON response from posts endpoint");
+  }
+}
+
 export default function BlogList() {
   const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}posts/`)
-      .then(res => res.json())
-      .then(data => setPosts(data));
+    fetch(endpoint("posts/"))
+      .then(parseJsonSafely)
+      .then(data => setPosts(Array.isArray(data) ? data : []))
+      .catch(() => setError(true));
   }, []);
+
+  if (error) return <p className="p-4 text-red-300">{t("Fout bij ophalen van posts.")}</p>;
 
   if (!posts.length) return <p className="p-4 text-white">{t("Geen posts beschikbaar")}</p>;
 
@@ -42,7 +85,7 @@ export default function BlogList() {
           )}
           <div className="p-4 bg-white/5">
             <h2 className="text-3xl font-bold mb-2 text-white">{latestPost.title}</h2>
-            <p className="text-slate-200 line-clamp-3" dangerouslySetInnerHTML={{ __html: latestPost.content }} />
+            <p className="text-slate-200 line-clamp-3">{toPlainPreviewText(latestPost.content)}</p>
           </div>
         </Link>
       )}
@@ -64,7 +107,7 @@ export default function BlogList() {
             )}
             <section>
               <h3 className="text-lg font-semibold text-white">{post.title}</h3>
-              <p className="text-slate-200 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <p className="text-slate-200 line-clamp-2">{toPlainPreviewText(post.content)}</p>
             </section>
           </Link>
         ))}

@@ -7,19 +7,45 @@ if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 
+const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+async function parseJsonSafely(res) {
+  const contentType = res.headers.get("content-type") || "";
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("Expected JSON response from albums endpoint");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON response from albums endpoint");
+  }
+}
+
 export default function AlbumsCarousel() {
   const { t } = useTranslation();
   const [albums, setAlbums] = useState([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/albums/`)
-      .then(res => res.json())
+    fetch(endpoint("albums/"))
+      .then(parseJsonSafely)
       .then(data => {
         // sorteer op created_at desc en neem de laatste 5
-        const latest = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+        const safeData = Array.isArray(data) ? data : [];
+        const latest = safeData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
         setAlbums(latest);
-      });
+      })
+      .catch(() => setError(true));
   }, []);
+
+  if (error) return <p className="p-4 text-red-300">{t("Fout bij ophalen van albums.")}</p>;
 
   if (!albums.length) return <p className="p-4 text-white">{t("Geen albums beschikbaar")}</p>;
 

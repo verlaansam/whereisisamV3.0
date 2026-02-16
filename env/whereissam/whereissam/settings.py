@@ -17,9 +17,16 @@ from datetime import timedelta
 # Try to load environment variables from .env file
 try:
     from dotenv import load_dotenv
-    # Load from the whereissam directory (where manage.py is)
-    env_path = Path(__file__).resolve().parent.parent / '.env'
-    load_dotenv(dotenv_path=env_path)
+    settings_file = Path(__file__).resolve()
+    candidates = [
+        settings_file.parents[1] / ".env",  # /app/.env in dev container
+        settings_file.parents[3] / ".env" if len(settings_file.parents) > 3 else None,  # repo root
+        Path.cwd() / ".env",
+    ]
+    for env_path in candidates:
+        if env_path and env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+            break
 except ImportError:
     pass
 

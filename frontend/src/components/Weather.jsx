@@ -10,6 +10,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
+const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 const WEATHER_LOCATION = "vlieland-vliehorst";
 const TIDE_LOCATIONS = [
   { label: "Vlieland", value: "vlieland" },
@@ -93,8 +94,8 @@ export default function Weather() {
       try {
         setLoadingWeather(true);
         setWeatherError("");
-        const res = await fetch(`${API_URL}/weather/?location=${WEATHER_LOCATION}`);
-        if (!res.ok) throw new Error("Kon weerdata niet laden");
+        const res = await fetch(endpoint(`weather/?location=${encodeURIComponent(WEATHER_LOCATION)}`));
+        if (!res.ok) throw new Error(`Kon weerdata niet laden (${res.status})`);
         const data = await res.json();
         if (cancelled) return;
         setWeather(normalizeFirst(data));
@@ -160,8 +161,8 @@ export default function Weather() {
       try {
         setLoadingTides(true);
         setTideError("");
-        const res = await fetch(`${API_URL}tides/?location=${tideLocation}`);
-        if (!res.ok) throw new Error("Kon getijden niet laden");
+        const res = await fetch(endpoint(`tides/?location=${encodeURIComponent(tideLocation)}`));
+        if (!res.ok) throw new Error(`Kon getijden niet laden (${res.status})`);
         const data = await res.json();
         if (cancelled) return;
         setTideEvents(normalizeEvents(data));

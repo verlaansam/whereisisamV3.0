@@ -2,9 +2,6 @@
 .env
 .env.local
 .env.*.local
-env/.env
-env/whereissam/.env
-frontend/.env
 
 # Database files
 *.sqlite3
