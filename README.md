@@ -68,3 +68,7 @@ Contributions are welcome! Feel free to fork the repository, make changes, and s
 For any issues or feature requests, please open an issue in the repository.
 
 Happy coding!
+
+to update
+git pull
+docker compose -f docker-compose.prod.yml up -d --build
