@@ -58,16 +58,32 @@ services:
     container_name: whereissam_frontend
     depends_on:
       - backend
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     networks:
       - whereissam_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: whereissam_caddy
+    depends_on:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - whereissam_network
+    restart: unless-stopped
 
   # Optional: Nginx reverse proxy for production (uncomment if not using DigitalOcean Load Balancer)
   # nginx:
@@ -94,3 +110,5 @@ networks:
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:
