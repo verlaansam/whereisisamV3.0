@@ -33,6 +33,7 @@ services:
       - SESSION_COOKIE_SECURE=${PROD_SESSION_COOKIE_SECURE:-True}
       - CSRF_COOKIE_SECURE=${PROD_CSRF_COOKIE_SECURE:-True}
       - SECURE_HSTS_SECONDS=${PROD_SECURE_HSTS_SECONDS:-31536000}
+      - GUNICORN_WORKERS=${PROD_GUNICORN_WORKERS:-2}
     depends_on:
       db:
         condition: service_healthy
