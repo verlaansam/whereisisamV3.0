@@ -18,9 +18,8 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: ${PROD_BACKEND_IMAGE}
+    pull_policy: always
     container_name: whereissam_backend
     environment:
       - DEBUG=${PROD_DEBUG:-False}
@@ -50,11 +49,8 @@ services:
       retries: 3
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-      args:
-        - REACT_APP_API_URL=${PROD_REACT_APP_API_URL}
+    image: ${PROD_FRONTEND_IMAGE}
+    pull_policy: always
     container_name: whereissam_frontend
     depends_on:
       - backend
