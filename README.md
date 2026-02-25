@@ -69,6 +69,40 @@ For any issues or feature requests, please open an issue in the repository.
 
 Happy coding!
 
-to update
+## build local, pull and rund on server
+
+# local:
+1) login ghcr
+docker login ghcr.io -u verlaansam
+
+2) set tag from commit
+TAG=$(git rev-parse --short HEAD)
+echo "$TAG"
+
+3) build backend image
+docker build \
+  -f Dockerfile.prod \
+  -t ghcr.io/verlaansam/whereisisam-backend:$TAG \
+  -t ghcr.io/verlaansam/whereisisam-backend:latest \
+  .
+  
+4) build frontend image
+docker build \
+  -f frontend/Dockerfile.prod \
+  --build-arg REACT_APP_API_URL=https://whereis.samverlaan.nl/api/ \
+  -t ghcr.io/verlaansam/whereisisam-frontend:$TAG \
+  -t ghcr.io/verlaansam/whereisisam-frontend:latest \
+  ./frontend
+
+5) push images 
+docker push ghcr.io/verlaansam/whereisisam-backend:$TAG
+docker push ghcr.io/verlaansam/whereisisam-backend:latest
+docker push ghcr.io/verlaansam/whereisisam-frontend:$TAG
+docker push ghcr.io/verlaansam/whereisisam-frontend:latest
+
+
+# droplet
+cd /opt/whereisisam3
 git pull
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d

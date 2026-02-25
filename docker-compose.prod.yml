@@ -56,6 +56,9 @@ services:
       - backend
     expose:
       - "80"
+    volumes:
+      - ./env/whereissam/staticfiles:/var/www/backend-static:ro
+      - ./env/whereissam/media:/var/www/backend-media:ro
     networks:
       - whereissam_network
     restart: unless-stopped
