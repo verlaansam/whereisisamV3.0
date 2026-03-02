@@ -11,7 +11,6 @@ if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
-const WEATHER_LOCATION = "vlieland-vliehorst";
 const TIDE_LOCATIONS = [
   { label: "Vlieland", value: "vlieland" },
   { label: "Harlingen", value: "harlingen" },
@@ -94,7 +93,7 @@ export default function Weather() {
       try {
         setLoadingWeather(true);
         setWeatherError("");
-        const res = await fetch(endpoint(`weather/?location=${encodeURIComponent(WEATHER_LOCATION)}`));
+        const res = await fetch(endpoint("weather/?limit=1"));
         if (!res.ok) throw new Error(`Kon weerdata niet laden (${res.status})`);
         const data = await res.json();
         if (cancelled) return;
@@ -161,7 +160,7 @@ export default function Weather() {
       try {
         setLoadingTides(true);
         setTideError("");
-        const res = await fetch(endpoint(`tides/?location=${encodeURIComponent(tideLocation)}`));
+        const res = await fetch(endpoint(`tides/?location=${encodeURIComponent(tideLocation)}&limit=4`));
         if (!res.ok) throw new Error(`Kon getijden niet laden (${res.status})`);
         const data = await res.json();
         if (cancelled) return;
@@ -353,7 +352,7 @@ export default function Weather() {
                 <p className="text-sm text-slate-200/70">{t("Geen getijdedata beschikbaar voor deze locatie.")}</p>
               )}
 
-              {tideEvents.slice(0, 6).map((event, idx) => (
+              {tideEvents.slice(0, 4).map((event, idx) => (
                 <div
                   key={`${event?.time || event?.timestamp || idx}-${idx}`}
                   className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"

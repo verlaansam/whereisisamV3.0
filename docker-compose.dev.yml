@@ -22,6 +22,7 @@ services:
       - CSRF_COOKIE_SECURE=${DEV_CSRF_COOKIE_SECURE:-False}
       - SECURE_HSTS_SECONDS=${DEV_SECURE_HSTS_SECONDS:-0}
       - METEOSERVER_API_KEY=${DEV_METEOSERVER_API_KEY:-${METEOSERVER_API_KEY:-}}
+      - KNMI_OPEN_DATA_API_KEY=${DEV_KNMI_OPEN_DATA_API_KEY:-${KNMI_OPEN_DATA_API_KEY:-${KNMI_API_KEY:-}}}
     networks:
       - whereissam_network
     command: python manage.py runserver 0.0.0.0:8000

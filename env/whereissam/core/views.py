@@ -26,6 +26,7 @@ from rest_framework import status, permissions
 from django.contrib.auth import update_session_auth_hash
 from .models import Profile
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -124,10 +125,17 @@ class TidesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        qs = Tides.objects.select_related("location").all().order_by("timestamp")
+        qs = Tides.objects.select_related("location").filter(timestamp__gte=timezone.now()).order_by("timestamp")
         location_slug = self.request.query_params.get("location")
         if location_slug:
             qs = qs.filter(location__location__iexact=location_slug)
+        limit = self.request.query_params.get("limit")
+        try:
+            limit_value = int(limit) if limit is not None else 4
+        except (TypeError, ValueError):
+            limit_value = 4
+        if limit_value > 0:
+            qs = qs[:limit_value]
         return qs
 
 

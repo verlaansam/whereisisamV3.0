@@ -33,6 +33,7 @@ services:
       - CSRF_COOKIE_SECURE=${PROD_CSRF_COOKIE_SECURE:-True}
       - SECURE_HSTS_SECONDS=${PROD_SECURE_HSTS_SECONDS:-31536000}
       - GUNICORN_WORKERS=${PROD_GUNICORN_WORKERS:-1}
+      - KNMI_OPEN_DATA_API_KEY=${PROD_KNMI_OPEN_DATA_API_KEY:-${KNMI_OPEN_DATA_API_KEY:-${KNMI_API_KEY:-}}}
     depends_on:
       db:
         condition: service_healthy
@@ -47,6 +48,40 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  weather_fetcher:
+    image: ${PROD_BACKEND_IMAGE}
+    pull_policy: always
+    container_name: whereissam_weather_fetcher
+    environment:
+      - DEBUG=${PROD_DEBUG:-False}
+      - SECRET_KEY=${PROD_SECRET_KEY}
+      - ALLOWED_HOSTS=${PROD_ALLOWED_HOSTS}
+      - DATABASE_URL=postgresql://${PROD_DB_USER:-postgres}:${PROD_DB_PASSWORD:-changeme}@db:5432/${PROD_DB_NAME:-whereissam}
+      - CORS_ALLOWED_ORIGINS=${PROD_CORS_ALLOWED_ORIGINS}
+      - CSRF_TRUSTED_ORIGINS=${PROD_CSRF_TRUSTED_ORIGINS}
+      - SECURE_SSL_REDIRECT=${PROD_SECURE_SSL_REDIRECT:-True}
+      - SESSION_COOKIE_SECURE=${PROD_SESSION_COOKIE_SECURE:-True}
+      - CSRF_COOKIE_SECURE=${PROD_CSRF_COOKIE_SECURE:-True}
+      - SECURE_HSTS_SECONDS=${PROD_SECURE_HSTS_SECONDS:-31536000}
+      - KNMI_OPEN_DATA_API_KEY=${PROD_KNMI_OPEN_DATA_API_KEY:-${KNMI_OPEN_DATA_API_KEY:-${KNMI_API_KEY:-}}}
+      - WEATHER_FETCH_INTERVAL_SECONDS=${PROD_WEATHER_FETCH_INTERVAL_SECONDS:-3600}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - whereissam_network
+    restart: unless-stopped
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        echo "Starting hourly weather fetcher (interval: ${WEATHER_FETCH_INTERVAL_SECONDS}s)"
+        while true; do
+          date -u +"[%Y-%m-%dT%H:%M:%SZ] Running fetch_weather_vlieland"
+          python manage.py fetch_weather_vlieland || true
+          sleep "${WEATHER_FETCH_INTERVAL_SECONDS}"
+        done
 
   frontend:
     image: ${PROD_FRONTEND_IMAGE}
