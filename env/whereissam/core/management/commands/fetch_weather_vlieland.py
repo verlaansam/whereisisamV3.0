@@ -51,8 +51,17 @@ RWS_TIDE_LOCATION_CODES = {
     "terschelling": ("terschelling.west", "terschelling.hoorn", "harlingen.waddenzee"),
 }
 KNMI_BASE_URL = "https://api.dataplatform.knmi.nl/open-data/v1"
-KNMI_WARNINGS_DATASET = "waarschuwingen_nederland_48h"
+KNMI_WARNINGS_DATASET = "maritime-warnings"
 KNMI_WARNINGS_VERSION = "1.0"
+KNMI_SHORT_FORECAST_DATASET = "short_term_weather_forecast"
+KNMI_SHORT_FORECAST_VERSION = "1.0"
+KNMI_MARITIME_AREA_ALIASES = {
+    "Harlingen": ("harlingen",),
+    "Texel": ("texel",),
+    "Rottum": ("rottum",),
+    "Delfzijl": ("delfzijl",),
+    "IJsselmeer": ("ijsselmeer", "ijselmeer"),
+}
 KNMI_DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkNWVkNTM3YTY0YmFjN2FkYjRiNWEzZmNmNDE4ZjU1YmY0OTQ4MDIwYTA1MzIzNjQxIiwiYXVkIjoiYW5vbm9ua2V5IiwiaWF0IjoxNzQ4NjkxODE2LCJleHAiOjE3NTEyODM4MTZ9.3M_2o9_TcPAhk7MphjUSOHNv3hRBMJaQXquI5S4_S4I"
 KNMI_PREFERRED_STATION = 242  # Vlieland
 KNMI_WEATHER_DATASET_CANDIDATES = (
@@ -65,6 +74,8 @@ KNMI_WEATHER_DATASET_CANDIDATES = (
     ("uurgegevens_knmi", "1.0"),
 )
 ENV_FILE_CANDIDATES = tuple(parent / ".env" for parent in Path(__file__).resolve().parents)
+MPS_TO_KNOTS = 1.943844
+KM_TO_NM = 1.0 / 1.852
 
 
 def _first_payload(data):
@@ -198,15 +209,40 @@ def _parse_timestamp(raw):
     return None
 
 
+def _mps_to_knots(value):
+    if value is None:
+        return None
+    return round(value * MPS_TO_KNOTS, 2)
+
+
+def _km_to_nm(value):
+    if value is None:
+        return None
+    return round(value * KM_TO_NM, 2)
+
+
+def _meters_to_nm(value):
+    if value is None:
+        return None
+    return round((value / 1000.0) * KM_TO_NM, 2)
+
+
 class Command(BaseCommand):
     help = "Fetches KNMI weather/warnings data and stores it in the database."
 
     def handle(self, *args, **options):
         knmi_weather = self._fetch_knmi_current_weather()
         weather = self._merge_weather(knmi_weather, {})
+        knmi_short_forecast = self._fetch_knmi_short_forecast_text()
+        knmi_bulletin = self._fetch_knmi_warning_text()
         weather["weather_warnings"] = self._merge_warnings(
             weather.get("weather_warnings"),
-            self._fetch_knmi_warning_text(),
+            self._extract_warning_section(knmi_bulletin),
+        )
+        weather["verwachting"] = (
+            knmi_short_forecast
+            or (weather.get("verwachting") or "").strip()
+            or self._extract_forecast_section(knmi_bulletin)
         )
         weather.setdefault("recorded_at", timezone.now())
         weather.setdefault("wind_direction", None)
@@ -483,14 +519,14 @@ class Command(BaseCommand):
             visibility_m = self._coerce_netcdf_number(self._read_netcdf_var(dataset, "vv", station_idx))
             sight = None
             if visibility_m is not None:
-                sight = str(round(visibility_m / 1000.0, 2))
+                sight = str(_meters_to_nm(visibility_m))
 
             return {
                 "recorded_at": recorded_at,
                 "wind_direction": None if wind_direction in ("", None) else str(self._coerce_netcdf_number(wind_direction)),
                 "temperature": temperature,
-                "wind_speed": wind_speed,
-                "wind_gusts": wind_gusts,
+                "wind_speed": _mps_to_knots(wind_speed),
+                "wind_gusts": _mps_to_knots(wind_gusts),
                 "sea_temperature": sea_temperature,
                 "sight": sight,
                 "wave_height": None,
@@ -645,16 +681,18 @@ class Command(BaseCommand):
             return {}
         timestamp = self._parse_knmi_row_timestamp(row) or timezone.now()
         direction = self._knmi_pick(row, ["DD", "DDVEC", "DDVEC10"])
-        sight_value = self._knmi_tenths(self._knmi_pick(row, ["VV"]))
+        sight_value_km = self._knmi_tenths(self._knmi_pick(row, ["VV"]))
+        wind_speed_mps = self._knmi_tenths(self._knmi_pick(row, ["FF", "FH", "FHVEC"]))
+        wind_gusts_mps = self._knmi_tenths(self._knmi_pick(row, ["FX", "FXH"]))
 
         return {
             "recorded_at": timestamp,
             "wind_direction": str(direction) if direction not in ("", None) else None,
             "temperature": self._knmi_tenths(self._knmi_pick(row, ["T", "TA", "TG"])),
-            "wind_speed": self._knmi_tenths(self._knmi_pick(row, ["FF", "FH", "FHVEC"])),
-            "wind_gusts": self._knmi_tenths(self._knmi_pick(row, ["FX", "FXH"])),
+            "wind_speed": _mps_to_knots(wind_speed_mps),
+            "wind_gusts": _mps_to_knots(wind_gusts_mps),
             "sea_temperature": self._knmi_tenths(self._knmi_pick(row, ["TZ", "TW", "WATERTEMP"])),
-            "sight": str(sight_value) if sight_value is not None else None,
+            "sight": str(_km_to_nm(sight_value_km)) if sight_value_km is not None else None,
             "wave_height": None,
             "verwachting": "",
             "weather_warnings": "",
@@ -703,11 +741,13 @@ class Command(BaseCommand):
                 continue
             low = name.lower()
             score = 0
-            if "waarschuwingen" in low:
+            if "maritime" in low:
+                score += 6
+            if "warning" in low or "waarschuwing" in low:
                 score += 4
-            if "nederland" in low:
-                score += 3
             if low.endswith(".xml"):
+                score += 2
+            if low.endswith(".json"):
                 score += 2
             if low.endswith(".txt"):
                 score += 1
@@ -717,6 +757,226 @@ class Command(BaseCommand):
         candidates.sort(reverse=True)
         return candidates[0][1]
 
+    def _fetch_knmi_short_forecast_text(self):
+        api_key = self._resolve_knmi_api_key()
+        headers = {"Authorization": api_key}
+        list_url = (
+            f"{KNMI_BASE_URL}/datasets/{KNMI_SHORT_FORECAST_DATASET}/versions/{KNMI_SHORT_FORECAST_VERSION}/files"
+            "?maxKeys=25&sorting=desc&orderBy=created"
+        )
+        try:
+            listing = self._fetch_json_url(list_url, headers=headers)
+            files = listing.get("files") or []
+            if not files:
+                return ""
+            filename = self._pick_knmi_short_forecast_file(files)
+            if not filename:
+                return ""
+
+            file_url = (
+                f"{KNMI_BASE_URL}/datasets/{KNMI_SHORT_FORECAST_DATASET}/versions/{KNMI_SHORT_FORECAST_VERSION}"
+                f"/files/{quote(filename, safe='')}/url"
+            )
+            signed = self._fetch_json_url(file_url, headers=headers)
+            download_url = signed.get("temporaryDownloadUrl")
+            if not download_url:
+                return ""
+
+            blob = self._fetch_bytes_url(download_url)
+            low = filename.lower()
+            if low.endswith(".gz"):
+                blob = gzip.decompress(blob)
+
+            raw = blob.decode("utf-8", errors="replace")
+            forecast = self._parse_knmi_short_forecast_payload(raw, filename)
+            if forecast:
+                self.stdout.write(self.style.SUCCESS("Loaded KNMI korte verwachting"))
+            return forecast
+        except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError, ET.ParseError, SystemExit, OSError) as exc:
+            logger.warning("Could not fetch KNMI short forecast: %s", exc)
+            self.stdout.write(self.style.WARNING(f"KNMI korte verwachting niet opgehaald: {exc}"))
+            return ""
+
+    def _pick_knmi_short_forecast_file(self, files):
+        candidates = []
+        for item in files:
+            name = item.get("filename") if isinstance(item, dict) else ""
+            if not name:
+                continue
+            low = name.lower()
+            score = 0
+            if "kort" in low or "short" in low:
+                score += 6
+            if "verwachting" in low or "forecast" in low:
+                score += 5
+            if "nederland" in low:
+                score += 2
+            if low.endswith(".json") or low.endswith(".json.gz"):
+                score += 4
+            elif low.endswith(".xml") or low.endswith(".xml.gz"):
+                score += 3
+            elif low.endswith(".txt") or low.endswith(".txt.gz"):
+                score += 2
+            else:
+                continue
+            candidates.append((score, name))
+
+        if not candidates:
+            return ""
+        candidates.sort(reverse=True)
+        return candidates[0][1]
+
+    def _parse_knmi_short_forecast_payload(self, raw, filename):
+        lowered = (filename or "").lower()
+        if lowered.endswith(".json") or lowered.endswith(".json.gz"):
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError:
+                data = None
+            if data:
+                rendered = self._render_knmi_short_forecast_from_json(data)
+                if rendered:
+                    return rendered
+
+        if lowered.endswith(".xml") or lowered.endswith(".xml.gz") or raw.lstrip().startswith("<"):
+            rendered = self._render_knmi_short_forecast_from_xml(raw)
+            if rendered:
+                return rendered
+
+        return self._render_knmi_short_forecast_from_text(raw)
+
+    def _render_knmi_short_forecast_from_json(self, data):
+        if not isinstance(data, (dict, list)):
+            return ""
+
+        candidates = []
+        for key in (
+            "short",
+            "short_forecast",
+            "shortForecast",
+            "forecast",
+            "verwachting",
+            "verwachting_kort",
+            "summary",
+            "samenvatting",
+            "text",
+            "description",
+        ):
+            value = _pick_deep(data, [key])
+            if value not in ("", None):
+                candidates.append(str(value).strip())
+
+        for text in candidates:
+            cleaned = self._clean_short_forecast_text(text)
+            if cleaned:
+                return cleaned
+        return ""
+
+    def _render_knmi_short_forecast_from_xml(self, raw):
+        root = ET.fromstring(raw)
+
+        def local_name(tag):
+            if "}" in tag:
+                return tag.rsplit("}", 1)[1].lower()
+            return tag.lower()
+
+        # KNMI short-term forecast files are often structured as:
+        # <block><field_id>Kort</field_id><field_content>...</field_content></block>
+        block_values = {"kort": [], "verwachting": [], "kop": []}
+        generic_block_values = []
+        for elem in root.iter():
+            if local_name(elem.tag) != "block":
+                continue
+            fields = {}
+            for child in elem:
+                fields[local_name(child.tag)] = (child.text or "").strip()
+
+            field_id = (fields.get("field_id") or "").strip().lower()
+            field_content = (fields.get("field_content") or "").strip()
+            if not field_content:
+                continue
+            cleaned = self._clean_short_forecast_text(field_content)
+            if not cleaned:
+                continue
+            if field_id in block_values:
+                block_values[field_id].append(cleaned)
+            else:
+                generic_block_values.append(cleaned)
+
+        for key in ("kort", "verwachting", "kop"):
+            if block_values[key]:
+                return block_values[key][0]
+        if generic_block_values:
+            return generic_block_values[0]
+
+        preferred_tags = {
+            "forecast",
+            "short",
+            "short_forecast",
+            "verwachting",
+            "samenvatting",
+            "summary",
+            "description",
+            "text",
+            "headline",
+        }
+        lines = []
+        for elem in root.iter():
+            tag = local_name(elem.tag)
+            if tag not in preferred_tags:
+                continue
+            text = (elem.text or "").strip()
+            if not text:
+                continue
+            cleaned = self._clean_short_forecast_text(text)
+            if cleaned:
+                lines.append(cleaned)
+
+        if not lines:
+            return ""
+        unique = []
+        seen = set()
+        for line in lines:
+            if line in seen:
+                continue
+            seen.add(line)
+            unique.append(line)
+        return "\n".join(unique[:4]).strip()
+
+    def _render_knmi_short_forecast_from_text(self, raw):
+        return self._clean_short_forecast_text(raw)
+
+    def _clean_short_forecast_text(self, text):
+        value = (text or "").replace(" | ", "\n")
+        value = re.sub(r"\r\n?", "\n", value)
+        value = re.sub(r"\n{3,}", "\n\n", value).strip()
+        if not value:
+            return ""
+
+        # Keep the "korte verwachting" part only when a longer bulletin is present.
+        lines = [line.strip() for line in value.splitlines() if line.strip()]
+        if not lines:
+            return ""
+
+        start_markers = ("korte termijn", "korte verwachting", "verwachting")
+        end_markers = ("een volgend bericht", "uitgegeven", "opgesteld door")
+        selected = []
+        in_scope = False
+        for line in lines:
+            low = line.lower()
+            if any(marker in low for marker in start_markers):
+                in_scope = True
+                selected.append(line)
+                continue
+            if in_scope and any(marker in low for marker in end_markers):
+                break
+            if in_scope:
+                selected.append(line)
+
+        if selected:
+            return "\n".join(selected).strip()
+        return value
+
     def _parse_knmi_warning_payload(self, raw, filename):
         lowered = (filename or "").lower()
         if lowered.endswith(".json"):
@@ -725,27 +985,99 @@ class Command(BaseCommand):
             except json.JSONDecodeError:
                 data = None
             if data:
-                return self._render_knmi_warning_from_json(data)
+                return self._render_knmi_maritime_warning_from_json(data)
         if lowered.endswith(".xml") or raw.lstrip().startswith("<"):
-            xml_text = self._render_knmi_warning_from_xml(raw)
+            xml_text = self._render_knmi_maritime_warning_from_xml(raw)
             if xml_text:
                 return xml_text
-        return self._render_knmi_warning_from_text(raw)
+            # XML payload without known warning structure: do not return raw tags.
+            return ""
+        return self._render_knmi_maritime_warning_from_text(raw)
 
-    def _render_knmi_warning_from_json(self, data):
-        if isinstance(data, dict):
-            direct = _pick_deep(data, ["headline", "description", "message", "event", "title", "warning"])
-            if direct:
-                return str(direct).strip()
+    def _match_maritime_area(self, text):
+        normalized = _normalize_key(text)
+        if not normalized:
+            return ""
+        for canonical, aliases in KNMI_MARITIME_AREA_ALIASES.items():
+            for alias in aliases:
+                if _normalize_key(alias) in normalized:
+                    return canonical
         return ""
 
-    def _render_knmi_warning_from_text(self, raw):
+    def _format_maritime_warning(self, area, text):
+        cleaned = re.sub(r"\s+", " ", (text or "")).strip(" -:;,.")
+        if not area or not cleaned:
+            return ""
+        return f"{area}: {cleaned}"
+
+    def _dedupe_lines(self, lines, limit=8):
+        result = []
+        seen = set()
+        for line in lines:
+            item = (line or "").strip()
+            if not item:
+                continue
+            key = item.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(item)
+            if len(result) >= limit:
+                break
+        return result
+
+    def _render_knmi_maritime_warning_from_json(self, data):
+        entries = []
+        queue = [data]
+        seen = set()
+
+        while queue:
+            node = queue.pop(0)
+            node_id = id(node)
+            if node_id in seen:
+                continue
+            seen.add(node_id)
+
+            if isinstance(node, dict):
+                area_value = (
+                    _pick(node, ["areaDesc", "area_desc", "area", "district", "gebied", "location", "name"])
+                    or _pick_deep(node, ["areaDesc", "area_desc", "area", "district", "gebied", "location", "name"])
+                )
+                message_value = (
+                    _pick(node, ["headline", "event", "description", "warning", "text", "message", "title"])
+                    or _pick_deep(node, ["headline", "event", "description", "warning", "text", "message", "title"])
+                )
+
+                area = self._match_maritime_area(str(area_value or ""))
+                if area and message_value not in ("", None):
+                    line = self._format_maritime_warning(area, str(message_value))
+                    if line:
+                        entries.append(line)
+
+                for value in node.values():
+                    if isinstance(value, (dict, list)):
+                        queue.append(value)
+            elif isinstance(node, list):
+                for value in node:
+                    if isinstance(value, (dict, list)):
+                        queue.append(value)
+
+        lines = self._dedupe_lines(entries)
+        return "\n".join(lines)
+
+    def _render_knmi_maritime_warning_from_text(self, raw):
         lines = [line.strip() for line in (raw or "").splitlines() if line.strip()]
         if not lines:
             return ""
-        return " | ".join(lines[:6])
+        selected = []
+        for line in lines:
+            area = self._match_maritime_area(line)
+            if area:
+                selected.append(f"{area}: {line}")
+        lines = self._dedupe_lines(selected)
+        return "\n".join(lines)
 
-    def _render_knmi_warning_from_xml(self, raw):
+    def _render_knmi_maritime_warning_from_xml(self, raw):
         root = ET.fromstring(raw)
 
         def local_name(tag):
@@ -753,35 +1085,128 @@ class Command(BaseCommand):
                 return tag.rsplit("}", 1)[1].lower()
             return tag.lower()
 
-        messages = []
+        entries = []
+        # CAP-like structure: <info> ... <area><areaDesc>...</areaDesc> ...
         for info in root.iter():
             if local_name(info.tag) != "info":
                 continue
-            parts = {}
-            for child in info:
-                key = local_name(child.tag)
-                text = (child.text or "").strip()
-                if key in {"event", "headline", "description", "areadesc", "severity"} and text:
-                    parts[key] = text
-            if not parts:
-                continue
-            msg_bits = [parts.get("event"), parts.get("severity"), parts.get("areadesc"), parts.get("headline")]
-            msg = " - ".join([bit for bit in msg_bits if bit])
-            if not msg:
-                msg = parts.get("description", "")
-            if msg:
-                messages.append(msg)
 
-        if not messages:
-            return ""
-        unique = []
-        seen = set()
-        for msg in messages:
-            if msg in seen:
+            area_texts = []
+            headline = ""
+            event = ""
+            description = ""
+            severity = ""
+
+            for child in info:
+                tag = local_name(child.tag)
+                text = (child.text or "").strip()
+                if tag == "area":
+                    for area_child in child:
+                        if local_name(area_child.tag) == "areadesc":
+                            area_text = (area_child.text or "").strip()
+                            if area_text:
+                                area_texts.append(area_text)
+                elif tag == "areadesc" and text:
+                    area_texts.append(text)
+                elif tag == "headline":
+                    headline = text
+                elif tag == "event":
+                    event = text
+                elif tag == "description":
+                    description = text
+                elif tag == "severity":
+                    severity = text
+
+            message = headline or event or description
+            if severity and message and severity.lower() not in message.lower():
+                message = f"{message} ({severity})"
+            if not message:
                 continue
-            seen.add(msg)
-            unique.append(msg)
-        return " | ".join(unique[:4])
+
+            for area_text in area_texts:
+                area = self._match_maritime_area(area_text)
+                if not area:
+                    continue
+                line = self._format_maritime_warning(area, message)
+                if line:
+                    entries.append(line)
+
+        if entries:
+            return "\n".join(self._dedupe_lines(entries))
+
+        # Generic XML fallback: pair any recognized area text with nearby warning text.
+        generic = []
+        for elem in root.iter():
+            text = (elem.text or "").strip()
+            if not text:
+                continue
+            area = self._match_maritime_area(text)
+            if not area:
+                continue
+            generic.append(f"{area}: {text}")
+        return "\n".join(self._dedupe_lines(generic))
+
+    def _normalize_knmi_bulletin_text(self, value):
+        text = (value or "").replace(" | ", "\n")
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        return text.strip()
+
+    def _extract_warning_section(self, bulletin):
+        text = self._normalize_knmi_bulletin_text(bulletin)
+        if not text:
+            return ""
+
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if not lines:
+            return ""
+
+        warning_markers = ("waarschuwing", "waarschuwingen", "warning", "code geel", "code oranje", "code rood")
+        forecast_markers = ("verwachting",)
+        next_report_markers = ("een volgend bericht",)
+
+        selected = []
+        in_warning_context = False
+        for line in lines:
+            low = line.lower()
+            if any(marker in low for marker in forecast_markers):
+                break
+            if any(marker in low for marker in next_report_markers):
+                break
+            if any(marker in low for marker in warning_markers):
+                in_warning_context = True
+                selected.append(line)
+                continue
+            if in_warning_context:
+                selected.append(line)
+
+        result = "\n".join(selected).strip()
+        return result or text
+
+    def _extract_forecast_section(self, bulletin):
+        text = self._normalize_knmi_bulletin_text(bulletin)
+        if not text:
+            return ""
+
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if not lines:
+            return ""
+
+        forecast_markers = ("verwachting",)
+        next_report_markers = ("een volgend bericht",)
+        selected = []
+        in_forecast = False
+        for line in lines:
+            low = line.lower()
+            if any(marker in low for marker in forecast_markers):
+                in_forecast = True
+                selected.append(line)
+                continue
+            if in_forecast and any(marker in low for marker in next_report_markers):
+                break
+            if in_forecast:
+                selected.append(line)
+
+        return "\n".join(selected).strip()
 
     def _merge_warnings(self, meteoserver_warning, knmi_warning):
         left = (meteoserver_warning or "").strip()

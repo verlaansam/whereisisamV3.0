@@ -189,7 +189,7 @@ export default function Weather() {
           </p>
           <h1 className="text-3xl md:text-4xl font-bold text-white">{t("Weer en getijden")}</h1>
           <p className="text-slate-200/80 mt-2">
-            {t("Live weer op vlieland. data van meteoserver")}
+            {t("Live weer op vlieland. Data van KNMI")}
           </p>
           <p className="text-xs text-slate-200/70 mt-3">
             {loadingWeather ? "" : `${t("Bijgewerkt")}: ${formatTimestamp(weatherMetrics.updatedAt)}`}
@@ -249,7 +249,7 @@ export default function Weather() {
                     ? weatherMetrics.windSpeed
                     : null
                 }
-                unit='m/s'
+                unit="kn"
               />
               <Metric
                 icon={Wind}
@@ -259,7 +259,7 @@ export default function Weather() {
                     ? weatherMetrics.gusts
                     : null
                 }
-                unit='m/s'
+                unit="kn"
               />
               <Metric
                 icon={Waves}
@@ -279,7 +279,7 @@ export default function Weather() {
                     ? weatherMetrics.sight
                     : null
                 }
-                unit="km"
+                unit="nm"
               />
             </div>
 
