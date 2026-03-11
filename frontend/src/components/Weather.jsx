@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CloudSun, Eye, Waves, Wind } from "lucide-react";
 import BottomNav from "./BottomNav";
 import TopNav from "./TopNav";
@@ -11,6 +11,28 @@ if (!API_URL) {
   throw new Error("Missing REACT_APP_API_URL environment variable");
 }
 const endpoint = (path) => `${API_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+const WINDGURU_WIDGET_ID = "wg_fwdg_500860_100_1765737296177";
+const buildWindguruWidgetSrc = (widgetId) =>
+  "https://www.windguru.cz/js/widget.php?" +
+  [
+    "s=500860",
+    "m=100",
+    `uid=${widgetId}`,
+    "wj=knots",
+    "tj=c",
+    "waj=m",
+    "tij=cm",
+    "odh=0",
+    "doh=24",
+    "fhours=240",
+    "hrsm=1",
+    "vt=forecasts",
+    "lng=nl",
+    "idbs=1",
+    "p=WINDSPD,GUST,SMER,TMPE,WCHILL,CDC,APCP1s,SLP",
+  ].join("&");
+
 const TIDE_LOCATIONS = [
   { label: "Vlieland", value: "vlieland" },
   { label: "Harlingen", value: "harlingen" },
@@ -64,6 +86,7 @@ const Metric = ({ icon: Icon, label, value, unit }) => (
 
 export default function Weather() {
   const { t } = useTranslation();
+  const windguruContainerRef = useRef(null);
   const [weather, setWeather] = useState(null);
   const [weatherError, setWeatherError] = useState("");
   const [loadingWeather, setLoadingWeather] = useState(true);
@@ -113,44 +136,25 @@ export default function Weather() {
 
   useEffect(() => {
     // Embed Windguru widget
-    const widgetId = "wg_fwdg_500860_100_1765737296177";
-    const container = document.getElementById(widgetId);
-    if (container) container.innerHTML = "";
+    const widgetId = WINDGURU_WIDGET_ID;
+    const container = windguruContainerRef.current;
+    if (!container) return undefined;
 
-    // Avoid double-injecting in StrictMode/dev
-    if (window.__windguruWidgetLoaded) {
-      return undefined;
-    }
+    container.innerHTML = "";
+    const existingElement = document.getElementById(widgetId);
+    if (existingElement) existingElement.remove();
 
     const script = document.createElement("script");
-    script.id = `${widgetId}-script`;
-    script.src =
-      "https://www.windguru.cz/js/widget.php?" +
-      [
-        "s=500860",
-        "m=100",
-        `uid=${widgetId}`,
-        "wj=knots",
-        "tj=c",
-        "waj=m",
-        "tij=cm",
-        "odh=0",
-        "doh=24",
-        "fhours=240",
-        "hrsm=1",
-        "vt=forecasts",
-        "lng=nl",
-        "idbs=1",
-        "p=WINDSPD,GUST,SMER,TMPE,WCHILL,CDC,APCP1s,SLP",
-      ].join("&");
-    script.async = true;
-    document.body.appendChild(script);
-    window.__windguruWidgetLoaded = true;
+    // Windguru's embed expects the <script> tag id to match the `uid` parameter.
+    script.id = widgetId;
+    script.src = buildWindguruWidgetSrc(widgetId);
+    // Some widget scripts still rely on synchronous execution/document.write.
+    script.async = false;
+    container.appendChild(script);
 
     return () => {
       script.remove();
-      const widgetContainer = document.getElementById(widgetId);
-      if (widgetContainer) widgetContainer.innerHTML = "";
+      container.innerHTML = "";
     };
   }, []);
 
@@ -209,6 +213,7 @@ export default function Weather() {
                 </div>
               </div>
 
+              <div ref={windguruContainerRef} className="mt-3 w-full overflow-x-auto" />
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
