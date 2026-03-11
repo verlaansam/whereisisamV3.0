@@ -345,29 +345,83 @@ class Command(BaseCommand):
             raise SystemExit(f"Invalid JSON from Meteoserver: {exc}")
         return payload
 
-    def _fetch_json_url(self, url, headers=None, method="GET", body=None):
+    def _fetch_json_url(self, url, headers=None, method="GET", body=None, retry_headers=None):
         payload = None
         if body is not None:
             payload = json.dumps(body).encode("utf-8")
-        req = request.Request(url, data=payload, headers=headers or {}, method=method)
-        with request.urlopen(req, timeout=20) as resp:
-            if resp.status != 200:
-                raise SystemExit(f"Unexpected status code {resp.status} for {url}")
-            return json.loads(resp.read().decode("utf-8"))
+        try:
+            req = request.Request(url, data=payload, headers=headers or {}, method=method)
+            with request.urlopen(req, timeout=20) as resp:
+                if resp.status != 200:
+                    raise SystemExit(f"Unexpected status code {resp.status} for {url}")
+                return json.loads(resp.read().decode("utf-8"))
+        except error.HTTPError as exc:
+            if exc.code in (401, 403) and retry_headers:
+                candidates = retry_headers
+                if isinstance(retry_headers, dict):
+                    candidates = [retry_headers]
+                for candidate in candidates:
+                    req = request.Request(url, data=payload, headers=candidate or {}, method=method)
+                    with request.urlopen(req, timeout=20) as resp:
+                        if resp.status != 200:
+                            raise SystemExit(f"Unexpected status code {resp.status} for {url}")
+                        return json.loads(resp.read().decode("utf-8"))
+            raise
 
-    def _fetch_text_url(self, url, headers=None):
-        req = request.Request(url, headers=headers or {})
-        with request.urlopen(req, timeout=20) as resp:
-            if resp.status != 200:
-                raise SystemExit(f"Unexpected status code {resp.status} for {url}")
-            return resp.read().decode("utf-8", errors="replace")
+    def _fetch_text_url(self, url, headers=None, retry_headers=None):
+        try:
+            req = request.Request(url, headers=headers or {})
+            with request.urlopen(req, timeout=20) as resp:
+                if resp.status != 200:
+                    raise SystemExit(f"Unexpected status code {resp.status} for {url}")
+                return resp.read().decode("utf-8", errors="replace")
+        except error.HTTPError as exc:
+            if exc.code in (401, 403) and retry_headers:
+                candidates = retry_headers
+                if isinstance(retry_headers, dict):
+                    candidates = [retry_headers]
+                for candidate in candidates:
+                    req = request.Request(url, headers=candidate or {})
+                    with request.urlopen(req, timeout=20) as resp:
+                        if resp.status != 200:
+                            raise SystemExit(f"Unexpected status code {resp.status} for {url}")
+                        return resp.read().decode("utf-8", errors="replace")
+            raise
 
-    def _fetch_bytes_url(self, url, headers=None):
-        req = request.Request(url, headers=headers or {})
-        with request.urlopen(req, timeout=20) as resp:
-            if resp.status != 200:
-                raise SystemExit(f"Unexpected status code {resp.status} for {url}")
-            return resp.read()
+    def _fetch_bytes_url(self, url, headers=None, retry_headers=None):
+        try:
+            req = request.Request(url, headers=headers or {})
+            with request.urlopen(req, timeout=20) as resp:
+                if resp.status != 200:
+                    raise SystemExit(f"Unexpected status code {resp.status} for {url}")
+                return resp.read()
+        except error.HTTPError as exc:
+            if exc.code in (401, 403) and retry_headers:
+                candidates = retry_headers
+                if isinstance(retry_headers, dict):
+                    candidates = [retry_headers]
+                for candidate in candidates:
+                    req = request.Request(url, headers=candidate or {})
+                    with request.urlopen(req, timeout=20) as resp:
+                        if resp.status != 200:
+                            raise SystemExit(f"Unexpected status code {resp.status} for {url}")
+                        return resp.read()
+            raise
+
+    def _build_knmi_headers(self):
+        api_key = (self._resolve_knmi_api_key() or "").strip()
+        if not api_key:
+            return {}, None
+
+        primary = {"Authorization": api_key}
+        if api_key.lower().startswith("bearer "):
+            return primary, None
+
+        retry = [{"Authorization": f"Bearer {api_key}"}, {"X-API-Key": api_key}]
+        if api_key != KNMI_DEFAULT_ANON_KEY:
+            retry.append({"Authorization": KNMI_DEFAULT_ANON_KEY})
+            retry.append({"Authorization": f"Bearer {KNMI_DEFAULT_ANON_KEY}"})
+        return primary, retry
 
     def _merge_weather(self, primary, fallback):
         result = dict(fallback or {})
@@ -377,11 +431,12 @@ class Command(BaseCommand):
         return result
 
     def _fetch_knmi_current_weather(self):
-        api_key = self._resolve_knmi_api_key()
-        headers = {"Authorization": api_key}
+        headers, retry_headers = self._build_knmi_headers()
         for dataset, version in KNMI_WEATHER_DATASET_CANDIDATES:
             try:
-                weather = self._fetch_latest_knmi_observation(dataset, version, headers=headers)
+                weather = self._fetch_latest_knmi_observation(
+                    dataset, version, headers=headers, retry_headers=retry_headers
+                )
                 if not weather:
                     continue
                 self.stdout.write(self.style.SUCCESS(f"Loaded KNMI weather from {dataset} v{version}"))
@@ -391,12 +446,12 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f"KNMI weer niet opgehaald uit {dataset} v{version}: {exc}"))
         return {}
 
-    def _fetch_latest_knmi_observation(self, dataset, version, headers):
+    def _fetch_latest_knmi_observation(self, dataset, version, headers, retry_headers=None):
         list_url = (
             f"{KNMI_BASE_URL}/datasets/{dataset}/versions/{version}/files"
             "?maxKeys=25&sorting=desc&orderBy=created"
         )
-        listing = self._fetch_json_url(list_url, headers=headers)
+        listing = self._fetch_json_url(list_url, headers=headers, retry_headers=retry_headers)
         files = listing.get("files") or []
         if not files:
             return None
@@ -409,7 +464,7 @@ class Command(BaseCommand):
             f"{KNMI_BASE_URL}/datasets/{dataset}/versions/{version}"
             f"/files/{quote(filename, safe='')}/url"
         )
-        signed = self._fetch_json_url(file_url, headers=headers)
+        signed = self._fetch_json_url(file_url, headers=headers, retry_headers=retry_headers)
         download_url = signed.get("temporaryDownloadUrl")
         if not download_url:
             return None
@@ -699,14 +754,13 @@ class Command(BaseCommand):
         }
 
     def _fetch_knmi_warning_text(self):
-        api_key = self._resolve_knmi_api_key()
-        headers = {"Authorization": api_key}
+        headers, retry_headers = self._build_knmi_headers()
         list_url = (
             f"{KNMI_BASE_URL}/datasets/{KNMI_WARNINGS_DATASET}/versions/{KNMI_WARNINGS_VERSION}/files"
             "?maxKeys=25&sorting=desc&orderBy=created"
         )
         try:
-            listing = self._fetch_json_url(list_url, headers=headers)
+            listing = self._fetch_json_url(list_url, headers=headers, retry_headers=retry_headers)
             files = listing.get("files") or []
             if not files:
                 return ""
@@ -718,7 +772,7 @@ class Command(BaseCommand):
                 f"{KNMI_BASE_URL}/datasets/{KNMI_WARNINGS_DATASET}/versions/{KNMI_WARNINGS_VERSION}"
                 f"/files/{quote(filename, safe='')}/url"
             )
-            signed = self._fetch_json_url(file_url, headers=headers)
+            signed = self._fetch_json_url(file_url, headers=headers, retry_headers=retry_headers)
             download_url = signed.get("temporaryDownloadUrl")
             if not download_url:
                 return ""
@@ -758,14 +812,13 @@ class Command(BaseCommand):
         return candidates[0][1]
 
     def _fetch_knmi_short_forecast_text(self):
-        api_key = self._resolve_knmi_api_key()
-        headers = {"Authorization": api_key}
+        headers, retry_headers = self._build_knmi_headers()
         list_url = (
             f"{KNMI_BASE_URL}/datasets/{KNMI_SHORT_FORECAST_DATASET}/versions/{KNMI_SHORT_FORECAST_VERSION}/files"
             "?maxKeys=25&sorting=desc&orderBy=created"
         )
         try:
-            listing = self._fetch_json_url(list_url, headers=headers)
+            listing = self._fetch_json_url(list_url, headers=headers, retry_headers=retry_headers)
             files = listing.get("files") or []
             if not files:
                 return ""
@@ -777,7 +830,7 @@ class Command(BaseCommand):
                 f"{KNMI_BASE_URL}/datasets/{KNMI_SHORT_FORECAST_DATASET}/versions/{KNMI_SHORT_FORECAST_VERSION}"
                 f"/files/{quote(filename, safe='')}/url"
             )
-            signed = self._fetch_json_url(file_url, headers=headers)
+            signed = self._fetch_json_url(file_url, headers=headers, retry_headers=retry_headers)
             download_url = signed.get("temporaryDownloadUrl")
             if not download_url:
                 return ""
