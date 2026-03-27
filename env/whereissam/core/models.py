@@ -33,6 +33,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True) 
     content = RichTextUploadingField()
+    is_published = models.BooleanField(default=True)
     categories = models.ManyToManyField(Category, blank=True)  # Meerdere categorieën
     windspeed = models.ForeignKey(WindSpeed, on_delete=models.SET_NULL, null=True, blank=True)
     winddirection = models.ForeignKey(WindDirection, on_delete=models.SET_NULL, null=True, blank=True)
@@ -41,9 +42,20 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def _generate_unique_slug(self):
+        base_slug = slugify(self.title) or "post"
+        slug = base_slug
+        suffix = 2
+
+        while Post.objects.exclude(pk=self.pk).filter(slug=slug).exists():
+            slug = f"{base_slug}-{suffix}"
+            suffix += 1
+
+        return slug
+
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)  # maak slug van de titel
+            self.slug = self._generate_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):

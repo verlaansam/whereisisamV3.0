@@ -53,10 +53,16 @@ class SeastateViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-created_at')
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        queryset = Post.objects.all().order_by('-created_at')
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(is_published=True)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

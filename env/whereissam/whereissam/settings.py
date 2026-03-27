@@ -201,18 +201,23 @@ MEDIA_ROOT = os.environ.get('MEDIA_ROOT', BASE_DIR / 'media')
 
 # CKEditor upload path (in MEDIA_ROOT)
 CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_MAX_WIDTH = 340
 
 # CKEditor configuration
 CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
+            ['Format'],
             ['Bold', 'Italic', 'Underline'],
             ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['Image', 'Table', 'HorizontalRule'],
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source']
         ],
+        'format_tags': 'p;h1;h2;h3;pre',
         'height': 400,
+        'width': '100%',
     },
 }
 

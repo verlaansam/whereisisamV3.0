@@ -284,17 +284,6 @@ class Command(BaseCommand):
             return fallback.replace("distr. Zierikzee", "distr. Texel/Harlingen")
         return fallback
 
-    def _resolve_api_key(self):
-        api_key = os.environ.get("METEOSERVER_API_KEY")
-        if api_key:
-            return api_key
-
-        api_key = self._read_env_value("METEOSERVER_API_KEY")
-        if api_key:
-            return api_key
-
-        raise SystemExit("Missing METEOSERVER_API_KEY environment variable.")
-
     def _resolve_knmi_api_key(self):
         api_key = (
             os.environ.get("KNMI_API_KEY")
