@@ -34,6 +34,7 @@ export default function AlbumDetail() {
   const { t } = useTranslation();
   const { id } = useParams();
   const [album, setAlbum] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -50,6 +51,26 @@ export default function AlbumDetail() {
         setLoading(false);
       });
   }, [id, t]);
+
+  useEffect(() => {
+    if (!selectedPhoto) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedPhoto(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedPhoto]);
 
   if (loading) return <p>{t("Laden...")}</p>;
   if (error) return <p className="text-red-600">{error}</p>;
@@ -96,12 +117,18 @@ export default function AlbumDetail() {
               {album.photos && album.photos.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {album.photos.map((photo, idx) => (
-                    <img
+                    <button
                       key={idx}
-                      src={photo.image} // ⚡ hier gebruiken we de image property
-                      alt={photo.caption || `${t("Foto’s")} ${idx + 1}`}
-                      className="w-full h-56 object-cover rounded-xl shadow-lg border border-white/10"
-                    />
+                      type="button"
+                      onClick={() => setSelectedPhoto(photo)}
+                      className="group overflow-hidden rounded-xl border border-white/10 shadow-lg text-left bg-transparent"
+                    >
+                      <img
+                        src={photo.image}
+                        alt={photo.caption || `${t("Foto’s")} ${idx + 1}`}
+                        className="w-full h-56 object-cover transition duration-300 group-hover:scale-[1.02]"
+                      />
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -111,6 +138,39 @@ export default function AlbumDetail() {
           </div>
         </article>
       </div>
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center px-4 py-8"
+          onClick={() => setSelectedPhoto(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("Foto groot bekijken")}
+        >
+          <button
+            type="button"
+            onClick={() => setSelectedPhoto(null)}
+            className="absolute top-5 right-5 h-11 w-11 rounded-full bg-zinc-700/90 text-zinc-100 text-2xl leading-none flex items-center justify-center hover:bg-zinc-600 transition"
+            aria-label={t("Sluiten")}
+          >
+            ×
+          </button>
+          <div
+            className="max-w-6xl w-full flex flex-col items-center gap-3"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              src={selectedPhoto.image}
+              alt={selectedPhoto.caption || t("Foto’s")}
+              className="max-h-[85vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl"
+            />
+            {selectedPhoto.caption && (
+              <p className="text-sm text-slate-200 bg-black/30 px-4 py-2 rounded-full">
+                {selectedPhoto.caption}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       <BottomNav />
     </section>
   );

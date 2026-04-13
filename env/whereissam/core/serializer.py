@@ -8,6 +8,15 @@ import re
 from django.conf import settings
 
 
+def build_absolute_media_url(request, file_field):
+    if not file_field:
+        return None
+    url = getattr(file_field, "url", None) or str(file_field)
+    if request and isinstance(url, str) and url.startswith("/"):
+        return request.build_absolute_uri(url)
+    return url
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -61,37 +70,33 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
+    image = serializers.ImageField()
 
     class Meta:
         model = Photo
         fields = ["id", "album", "image", "caption", "uploaded_at"]
+        read_only_fields = ["uploaded_at"]
 
-    def get_image(self, obj):
-        request = self.context.get('request')
-        if obj.image:
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["image"] = build_absolute_media_url(self.context.get("request"), instance.image)
+        return data
 
 
 class AlbumSerializer(serializers.ModelSerializer):
     photos = PhotoSerializer(many=True, read_only=True)  # nested: alle foto's in album
     post_title = serializers.ReadOnlyField(source="post.title")
-    cover_image = serializers.SerializerMethodField()
+    cover_image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Album
         fields = ["id", "title", "description", "author", "post", "post_title", "cover_image", "created_at", "photos"]
+        read_only_fields = ["author", "created_at"]
 
-    def get_cover_image(self, obj):
-        request = self.context.get('request')
-        if obj.cover_image:
-            if request:
-                return request.build_absolute_uri(obj.cover_image.url)
-            return obj.cover_image.url
-        return None
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["cover_image"] = build_absolute_media_url(self.context.get("request"), instance.cover_image)
+        return data
 
 class AlbumMiniSerializer(serializers.ModelSerializer):
     photos = serializers.SerializerMethodField()

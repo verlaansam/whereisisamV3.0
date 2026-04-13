@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from .models import (
     Category,
     WindSpeed,
@@ -20,13 +20,28 @@ from .serializer import (
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth.models import User
-from rest_framework import status, permissions
 from django.contrib.auth import update_session_auth_hash
 from .models import Profile
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+
+
+class IsOwnerOrAlbumOwnerOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.is_staff:
+            return True
+        owner = getattr(obj, "author", None)
+        if owner is not None:
+            return owner == request.user
+        album = getattr(obj, "album", None)
+        return album is not None and album.author == request.user
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -92,7 +107,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all().order_by("-created_at")
     serializer_class = AlbumSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrAlbumOwnerOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -104,9 +119,15 @@ class AlbumViewSet(viewsets.ModelViewSet):
 
 
 class PhotoViewSet(viewsets.ModelViewSet):
-    queryset = Photo.objects.all().order_by("-uploaded_at")
+    queryset = Photo.objects.select_related("album", "album__author").all().order_by("-uploaded_at")
     serializer_class = PhotoSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrAlbumOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        album = serializer.validated_data["album"]
+        if not self.request.user.is_staff and album.author != self.request.user:
+            raise PermissionDenied("You cannot upload photos to this album.")
+        serializer.save()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

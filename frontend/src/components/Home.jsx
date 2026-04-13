@@ -25,7 +25,7 @@ export default function Home() {
                 </div>
 
                 {/* Album below vessel on md+, third on mobile */}
-                <div className="min-w-0 w-full order-3 md:order-none md:col-start-1 md:row-start-2 md:relative md:-mt-96 lg:-mt-40 md:z-10">
+                <div className="min-w-0 w-full order-3 md:order-none md:col-start-1 md:row-start-2">
                     <AlbumsCarousel />
                 </div>
             </div>
