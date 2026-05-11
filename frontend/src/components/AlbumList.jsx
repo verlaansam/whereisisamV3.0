@@ -52,6 +52,7 @@ export default function AlbumList() {
                 className="rounded-xl w-full h-48 object-cover mb-3"
                 loading="lazy"
                 decoding="async"
+                fetchPriority="low"
               />
             ) : (
               <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl mb-3">
@@ -72,6 +73,7 @@ export default function AlbumList() {
                   className="w-full h-20 object-cover rounded-lg"
                   loading="lazy"
                   decoding="async"
+                  fetchPriority="low"
                 />
               ))}
               {(!album.photos || album.photos.length === 0) && (

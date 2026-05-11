@@ -3,6 +3,7 @@ import tempfile
 from io import BytesIO
 
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -222,3 +223,79 @@ class PostListSerializerTests(TestCase):
         self.assertNotIn("comments", payload)
         self.assertNotIn("albums", payload)
         self.assertEqual(payload["excerpt"], "Hello world Extra text for preview.")
+
+
+@override_settings(
+    CONVERT_TO_WEBP=False,
+    POST_IMAGE_MAX_WIDTH=100,
+    ALBUM_COVER_MAX_WIDTH=100,
+    ALBUM_PHOTO_MAX_WIDTH=120,
+)
+class ImageOptimizationTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.mkdtemp()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir)
+        self.media_override.enable()
+        self.owner = User.objects.create_user(username="image-owner", password="StrongPass123!")
+
+    def tearDown(self):
+        self.media_override.disable()
+        shutil.rmtree(self.temp_media_dir, ignore_errors=True)
+
+    def _image_file(self, name="upload.png", size=(400, 200), color=(0, 128, 255)):
+        output = BytesIO()
+        Image.new("RGB", size, color=color).save(output, format="PNG")
+        output.seek(0)
+        return SimpleUploadedFile(name, output.read(), content_type="image/png")
+
+    def test_new_uploads_are_resized_on_save(self):
+        post = Post.objects.create(
+            title="Resized image post",
+            content="body",
+            author=self.owner,
+            image=self._image_file("post.png", size=(400, 200)),
+        )
+        album = Album.objects.create(
+            title="Resized cover album",
+            author=self.owner,
+            cover_image=self._image_file("cover.png", size=(500, 250)),
+        )
+        photo = Photo.objects.create(
+            album=album,
+            image=self._image_file("photo.png", size=(360, 180)),
+        )
+
+        with Image.open(post.image.path) as image:
+            self.assertLessEqual(image.width, 100)
+        with Image.open(album.cover_image.path) as image:
+            self.assertLessEqual(image.width, 100)
+        with Image.open(photo.image.path) as image:
+            self.assertLessEqual(image.width, 120)
+
+    @override_settings(CONVERT_TO_WEBP=True, ALBUM_COVER_MAX_WIDTH=120)
+    def test_management_command_optimizes_existing_cover_images(self):
+        album = Album.objects.create(
+            title="Existing cover album",
+            author=self.owner,
+            cover_image=self._image_file("legacy-cover.png", size=(600, 300)),
+        )
+
+        original_path = album.cover_image.path
+        with Image.open(original_path) as image:
+            self.assertLessEqual(image.width, 120)
+
+        album.cover_image.delete(save=False)
+        album.cover_image = self._image_file("legacy-cover.png", size=(600, 300))
+        album._skip_image_optimization = True
+        album.save(update_fields=["cover_image"])
+        del album._skip_image_optimization
+
+        with Image.open(album.cover_image.path) as image:
+            self.assertEqual(image.width, 600)
+
+        call_command("optimize_media_images")
+        album.refresh_from_db()
+
+        self.assertTrue(album.cover_image.name.endswith(".webp"))
+        with Image.open(album.cover_image.path) as image:
+            self.assertLessEqual(image.width, 120)

@@ -85,8 +85,9 @@ export default function BlogList() {
               src={latestPost.image.startsWith('http') ? latestPost.image : `${API_URL}${latestPost.image}`}
               alt={latestPost.title}
               className="w-full h-72 object-cover"
-              loading="lazy"
+              loading="eager"
               decoding="async"
+              fetchPriority="high"
             />
           )}
           <div className="p-3 bg-white/5">
@@ -112,6 +113,7 @@ export default function BlogList() {
                 className="w-24 h-24 object-contain rounded mr-4 flex-shrink-0 "
                 loading="lazy"
                 decoding="async"
+                fetchPriority="low"
               />
             )}
               <div>

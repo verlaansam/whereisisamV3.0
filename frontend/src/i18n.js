@@ -102,6 +102,9 @@ const resources = {
       "Sluiten": "Sluiten",
       "Foto groot bekijken": "Foto groot bekijken",
       "Deze website gebruikt Google Analytics-cookies om verkeer te meten.": "Deze website gebruikt Google Analytics-cookies om verkeer te meten.",
+      "Laad vessel tracker": "Laad vessel tracker",
+      "Laad de tracker op aanvraag om mobiel sneller te houden.": "Laad de tracker op aanvraag om mobiel sneller te houden.",
+      "Tracker wordt geladen zodra deze in beeld komt.": "Tracker wordt geladen zodra deze in beeld komt.",
     },
   },
   en: {
@@ -203,6 +206,9 @@ const resources = {
       "Sluiten": "Close",
       "Foto groot bekijken": "View photo in large size",
       "Deze website gebruikt Google Analytics-cookies om verkeer te meten.": "This website uses Google Analytics cookies to measure traffic.",
+      "Laad vessel tracker": "Load vessel tracker",
+      "Laad de tracker op aanvraag om mobiel sneller te houden.": "Load the tracker on demand to keep mobile performance fast.",
+      "Tracker wordt geladen zodra deze in beeld komt.": "The tracker loads when it enters the viewport.",
     },
   },
   de: {
@@ -304,6 +310,9 @@ const resources = {
       "Sluiten": "Schließen",
       "Foto groot bekijken": "Foto groß ansehen",
       "Deze website gebruikt Google Analytics-cookies om verkeer te meten.": "Diese Website verwendet Google-Analytics-Cookies, um den Verkehr zu messen.",
+      "Laad vessel tracker": "Vessel-Tracker laden",
+      "Laad de tracker op aanvraag om mobiel sneller te houden.": "Lade den Tracker bei Bedarf, um die mobile Leistung hoch zu halten.",
+      "Tracker wordt geladen zodra deze in beeld komt.": "Der Tracker wird geladen, sobald er im Sichtbereich erscheint.",
     },
   },
 };

@@ -3,7 +3,9 @@ import { useEffect } from "react";
 const GA_ID = "G-Q78X0BQFTB";
 
 function injectAnalytics() {
-  if (window.__whereIsSamAnalyticsLoaded) {
+  const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${GA_ID}"]`);
+  if (window.__whereIsSamAnalyticsLoaded || existingScript) {
+    window.__whereIsSamAnalyticsLoaded = true;
     return;
   }
   window.__whereIsSamAnalyticsLoaded = true;

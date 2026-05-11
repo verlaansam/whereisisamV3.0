@@ -81,8 +81,9 @@ export default function BlogList() {
               src={latestPost.image}
               alt={latestPost.title}
               className="w-full h-72 object-cover"
-              loading="lazy"
+              loading="eager"
               decoding="async"
+              fetchPriority="high"
             />
           )}
           <div className="p-4 bg-white/5">
@@ -107,6 +108,7 @@ export default function BlogList() {
                 className="w-24 h-24 object-cover rounded mr-4 flex-shrink-0"
                 loading="lazy"
                 decoding="async"
+                fetchPriority="low"
               />
             )}
             <section>

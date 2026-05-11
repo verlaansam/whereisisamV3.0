@@ -66,6 +66,7 @@ export default function AlbumsCarousel() {
                 className="w-full h-40 object-cover"
                 loading="lazy"
                 decoding="async"
+                fetchPriority="low"
               />
             ) : (
               <div className="w-full h-40 bg-gray-200 flex items-center justify-center">

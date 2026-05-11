@@ -172,6 +172,7 @@ export default function AlbumDetail() {
                         className="w-full h-56 object-cover transition duration-300 group-hover:scale-[1.02]"
                         loading="lazy"
                         decoding="async"
+                        fetchPriority="low"
                       />
                     </button>
                   ))}
@@ -267,6 +268,7 @@ export default function AlbumDetail() {
                       className="h-20 w-20 object-cover"
                       loading="lazy"
                       decoding="async"
+                      fetchPriority="low"
                     />
                   </button>
                 ))}

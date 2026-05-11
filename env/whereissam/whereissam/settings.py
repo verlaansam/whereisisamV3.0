@@ -225,6 +225,10 @@ CKEDITOR_CONFIGS = {
 # Image conversion to WebP with Pillow
 IMAGE_QUALITY = 85  # Balance between quality and file size
 CONVERT_TO_WEBP = True  # Convert all uploaded images to WebP format
+POST_IMAGE_MAX_WIDTH = 1600
+ALBUM_COVER_MAX_WIDTH = 1600
+ALBUM_PHOTO_MAX_WIDTH = 1800
+AVATAR_IMAGE_MAX_WIDTH = 512
 
 # Security Settings for HTTPS (enable on production server)
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
