@@ -17,6 +17,27 @@ def build_absolute_media_url(request, file_field):
     return url
 
 
+def strip_media_for_preview(html):
+    if not html:
+        return ""
+    try:
+        content = str(html)
+        content = re.sub(r"<figure[\s\S]*?<\/figure>", "", content, flags=re.IGNORECASE)
+        content = re.sub(r"<(iframe|video)[\s\S]*?<\/\1>", "", content, flags=re.IGNORECASE)
+        content = re.sub(r"<img[^>]*>", "", content, flags=re.IGNORECASE)
+        return content
+    except Exception:
+        return str(html)
+
+
+def build_excerpt(html, max_length=220):
+    plain_text = re.sub(r"<[^>]+>", " ", strip_media_for_preview(html))
+    plain_text = re.sub(r"\s+", " ", plain_text).strip()
+    if len(plain_text) <= max_length:
+        return plain_text
+    return f"{plain_text[: max_length - 1].rstrip()}…"
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -98,6 +119,23 @@ class AlbumSerializer(serializers.ModelSerializer):
         data["cover_image"] = build_absolute_media_url(self.context.get("request"), instance.cover_image)
         return data
 
+class AlbumListSerializer(serializers.ModelSerializer):
+    photos = serializers.SerializerMethodField()
+    cover_image = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Album
+        fields = ["id", "title", "description", "cover_image", "created_at", "photos"]
+
+    def get_photos(self, obj):
+        photos = obj.photos.order_by("-uploaded_at")[:3]
+        return PhotoSerializer(photos, many=True, context=self.context).data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["cover_image"] = build_absolute_media_url(self.context.get("request"), instance.cover_image)
+        return data
+
 class AlbumMiniSerializer(serializers.ModelSerializer):
     photos = serializers.SerializerMethodField()
 
@@ -107,7 +145,7 @@ class AlbumMiniSerializer(serializers.ModelSerializer):
 
     def get_photos(self, obj):
         request = self.context.get('request')
-        photos = obj.photos.all()[:3]
+        photos = obj.photos.order_by("-uploaded_at")[:3]
         result = []
         for photo in photos:
             if photo.image:
@@ -176,6 +214,26 @@ class PostSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.image.url)
             return obj.image.url
         return None
+
+
+class PostListSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    excerpt = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = ["id", "title", "slug", "image", "created_at", "excerpt"]
+
+    def get_image(self, obj):
+        request = self.context.get("request")
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+    def get_excerpt(self, obj):
+        return build_excerpt(obj.content)
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)

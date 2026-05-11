@@ -50,6 +50,8 @@ export default function AlbumList() {
                 src={album.cover_image}
                 alt={album.title}
                 className="rounded-xl w-full h-48 object-cover mb-3"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl mb-3">
@@ -62,12 +64,14 @@ export default function AlbumList() {
 
             <h3 className="font-medium mt-3">{t("Foto’s")}:</h3>
             <div className="grid grid-cols-3 gap-2 mt-2">
-              {(album.photos || []).map((photo) => (
+              {(album.photos || []).slice(0, 3).map((photo) => (
                 <img
                   key={photo.id}
                   src={photo.image}
                   alt={photo.caption || t("Foto’s")}
                   className="w-full h-20 object-cover rounded-lg"
+                  loading="lazy"
+                  decoding="async"
                 />
               ))}
               {(!album.photos || album.photos.length === 0) && (

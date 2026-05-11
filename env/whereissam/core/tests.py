@@ -4,12 +4,12 @@ from io import BytesIO
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 from rest_framework.test import APIClient
 
-from .models import Album, Photo
+from .models import Album, Photo, Post
 
 
 @override_settings(CONVERT_TO_WEBP=False)
@@ -80,3 +80,145 @@ class AlbumPhotoUploadAPITests(TestCase):
 
         self.assertEqual(response.status_code, 403, response.data)
         self.assertEqual(Photo.objects.count(), 0)
+
+
+@override_settings(CONVERT_TO_WEBP=False)
+class AlbumAdminUploadTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.mkdtemp()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir)
+        self.media_override.enable()
+
+        self.client = Client()
+        self.admin_user = User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="StrongPass123!",
+        )
+        self.album = Album.objects.create(title="Admin album", author=self.admin_user)
+
+    def tearDown(self):
+        self.media_override.disable()
+        shutil.rmtree(self.temp_media_dir, ignore_errors=True)
+
+    def _image_file(self, name="upload.png", size=(2, 2)):
+        output = BytesIO()
+        Image.new("RGB", size, color=(0, 128, 255)).save(output, format="PNG")
+        output.seek(0)
+        return SimpleUploadedFile(name, output.read(), content_type="image/png")
+
+    def test_admin_can_upload_photo_immediately_to_album(self):
+        self.assertTrue(self.client.login(username="admin", password="StrongPass123!"))
+
+        response = self.client.post(
+            reverse("admin:core_album_upload_photo", args=[self.album.pk]),
+            {"photo": self._image_file("instant.png")},
+        )
+
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(Photo.objects.count(), 1)
+        payload = response.json()
+        self.assertIn("image_url", payload)
+        self.assertTrue(payload["image_url"].startswith("/media/"))
+
+    def test_admin_upload_rejects_large_file(self):
+        self.assertTrue(self.client.login(username="admin", password="StrongPass123!"))
+
+        large_file = SimpleUploadedFile(
+            "too-large.png",
+            b"x" * (30 * 1024 * 1024 + 1),
+            content_type="image/png",
+        )
+        response = self.client.post(
+            reverse("admin:core_album_upload_photo", args=[self.album.pk]),
+            {"photo": large_file},
+        )
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(Photo.objects.count(), 0)
+
+
+@override_settings(CONVERT_TO_WEBP=False)
+class AlbumListSerializerTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.mkdtemp()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir)
+        self.media_override.enable()
+
+        self.client = APIClient()
+        self.owner = User.objects.create_user(username="owner", password="StrongPass123!")
+        self.album = Album.objects.create(
+            title="Album with many photos",
+            description="Only the three newest should be on the list view.",
+            author=self.owner,
+        )
+
+    def tearDown(self):
+        self.media_override.disable()
+        shutil.rmtree(self.temp_media_dir, ignore_errors=True)
+
+    def _image_file(self, name="upload.png", color=(0, 128, 255)):
+        output = BytesIO()
+        Image.new("RGB", (2, 2), color=color).save(output, format="PNG")
+        output.seek(0)
+        return SimpleUploadedFile(name, output.read(), content_type="image/png")
+
+    def test_album_list_returns_only_three_most_recent_photos(self):
+        photos = []
+        for index in range(4):
+            photo = Photo.objects.create(
+                album=self.album,
+                image=self._image_file(f"photo-{index}.png", color=(index, 128, 255)),
+                caption=f"Photo {index}",
+            )
+            photos.append(photo)
+
+        response = self.client.get(reverse("album-list"))
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data), 1)
+        payload = response.data[0]
+        self.assertEqual(len(payload["photos"]), 3)
+        self.assertEqual(
+            [photo["id"] for photo in payload["photos"]],
+            [photos[3].id, photos[2].id, photos[1].id],
+        )
+
+    def test_album_detail_still_returns_full_photo_list(self):
+        for index in range(4):
+            Photo.objects.create(
+                album=self.album,
+                image=self._image_file(f"detail-{index}.png", color=(index, 128, 255)),
+                caption=f"Detail {index}",
+            )
+
+        response = self.client.get(reverse("album-detail", args=[self.album.pk]))
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data["photos"]), 4)
+
+
+@override_settings(CONVERT_TO_WEBP=False)
+class PostListSerializerTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.owner = User.objects.create_user(username="writer", password="StrongPass123!")
+        self.post = Post.objects.create(
+            title="Performance post",
+            content="<p>Hello world</p><figure><img src='/media/test.png' /></figure><p>Extra text for preview.</p>",
+            author=self.owner,
+            is_published=True,
+        )
+
+    def test_post_list_returns_lightweight_preview_payload(self):
+        response = self.client.get(reverse("post-list"))
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data), 1)
+        payload = response.data[0]
+        self.assertEqual(payload["id"], self.post.id)
+        self.assertIn("excerpt", payload)
+        self.assertNotIn("content", payload)
+        self.assertNotIn("comments", payload)
+        self.assertNotIn("albums", payload)
+        self.assertEqual(payload["excerpt"], "Hello world Extra text for preview.")

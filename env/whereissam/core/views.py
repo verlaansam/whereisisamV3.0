@@ -14,7 +14,7 @@ from .models import (
 )
 from .serializer import (
     CategorySerializer, WindSpeedSerializer, WindDirectionSerializer, 
-    SeastateSerializer, PostSerializer, CommentSerializer, AlbumSerializer, PhotoSerializer, ProfileSerializer,
+    SeastateSerializer, PostSerializer, PostListSerializer, CommentSerializer, AlbumSerializer, AlbumListSerializer, PhotoSerializer, ProfileSerializer,
     WeatherVlielandSerializer, LocationSerializer, TideSerializer,
 )
 from rest_framework.views import APIView
@@ -69,9 +69,13 @@ class SeastateViewSet(viewsets.ModelViewSet):
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'slug'
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PostListSerializer
+        return PostSerializer
 
     def get_queryset(self):
         queryset = Post.objects.all().order_by('-created_at')
@@ -106,8 +110,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all().order_by("-created_at")
-    serializer_class = AlbumSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrAlbumOwnerOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AlbumListSerializer
+        return AlbumSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

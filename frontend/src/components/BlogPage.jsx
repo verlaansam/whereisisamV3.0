@@ -81,11 +81,13 @@ export default function BlogList() {
               src={latestPost.image}
               alt={latestPost.title}
               className="w-full h-72 object-cover"
+              loading="lazy"
+              decoding="async"
             />
           )}
           <div className="p-4 bg-white/5">
             <h2 className="text-3xl font-bold mb-2 text-white">{latestPost.title}</h2>
-            <p className="text-slate-200 line-clamp-3">{toPlainPreviewText(latestPost.content)}</p>
+            <p className="text-slate-200 line-clamp-3">{latestPost.excerpt || toPlainPreviewText(latestPost.content)}</p>
           </div>
         </Link>
       )}
@@ -103,11 +105,13 @@ export default function BlogList() {
                 src={post.image}
                 alt={post.title}
                 className="w-24 h-24 object-cover rounded mr-4 flex-shrink-0"
+                loading="lazy"
+                decoding="async"
               />
             )}
             <section>
               <h3 className="text-lg font-semibold text-white">{post.title}</h3>
-              <p className="text-slate-200 line-clamp-2">{toPlainPreviewText(post.content)}</p>
+              <p className="text-slate-200 line-clamp-2">{post.excerpt || toPlainPreviewText(post.content)}</p>
             </section>
           </Link>
         ))}

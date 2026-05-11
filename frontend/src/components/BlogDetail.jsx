@@ -121,12 +121,12 @@ export default function BlogDetail() {
       <TopNav />
       <article className="max-w-6xl lg:max-w-7xl mx-auto mt-16 mb-20 px-4 md:px-6 lg:px-8 min-w-0 w-full">
         <button
+          type="button"
           onClick={() => navigate(-1)}
-          className="text-cyan-100 hover:text-white transition font-medium mb-4 inline-flex items-center gap-2"
+          className="text-cyan-100 hover:text-white transition font-medium mb-4 inline-flex items-center"
         >
-          <span aria-hidden>←</span> {t("← Terug")}
+          {t("← Terug")}
         </button>
-
         <section className="bg-slate-900/80 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur">
           <div className="relative h-64 md:h-96">
             {post.image ? (

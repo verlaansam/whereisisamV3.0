@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import path, reverse
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from .models import (
     Post,
@@ -22,6 +23,14 @@ MAX_ALBUM_BULK_UPLOADS = 20
 MAX_ALBUM_IMAGE_SIZE = 30 * 1024 * 1024
 
 
+def validate_album_photo_upload(uploaded_file):
+    if not uploaded_file:
+        raise ValidationError("No file was provided.")
+    if uploaded_file.size > MAX_ALBUM_IMAGE_SIZE:
+        raise ValidationError(f"{uploaded_file.name} is larger than 30 MB.")
+    return forms.ImageField().clean(uploaded_file)
+
+
 class MultipleImageInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -30,12 +39,11 @@ class MultipleImageField(forms.FileField):
     widget = MultipleImageInput
 
     def clean(self, data, initial=None):
-        single_file_clean = super().clean
         if not data:
             return []
         if isinstance(data, (list, tuple)):
-            return [single_file_clean(item, initial) for item in data]
-        return [single_file_clean(data, initial)]
+            return [validate_album_photo_upload(item) for item in data]
+        return [validate_album_photo_upload(data)]
 
 
 class PostAdminForm(forms.ModelForm):
@@ -68,9 +76,6 @@ class AlbumAdminForm(forms.ModelForm):
         photos = self.cleaned_data.get("bulk_photos") or []
         if len(photos) > MAX_ALBUM_BULK_UPLOADS:
             raise ValidationError(f"You can upload a maximum of {MAX_ALBUM_BULK_UPLOADS} images at once.")
-        for photo in photos:
-            if photo.size > MAX_ALBUM_IMAGE_SIZE:
-                raise ValidationError(f"{photo.name} is larger than 30 MB.")
         return photos
 
 
@@ -102,6 +107,81 @@ class AlbumAdmin(admin.ModelAdmin):
     list_filter = ("author", "post", "created_at")
     search_fields = ("title", "description")
     inlines = [PhotoInline]
+
+    class Media:
+        css = {"all": ("core/admin.css",)}
+        js = ("core/album_admin.js",)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<path:object_id>/upload-photo/",
+                self.admin_site.admin_view(self.upload_photo_view),
+                name="core_album_upload_photo",
+            ),
+        ]
+        return custom_urls + urls
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change=change, **kwargs)
+        bulk_photos_field = form.base_fields.get("bulk_photos")
+        if not bulk_photos_field:
+            return form
+
+        widget_attrs = {
+            **bulk_photos_field.widget.attrs,
+            "accept": "image/*",
+            "data-max-files": str(MAX_ALBUM_BULK_UPLOADS),
+            "data-max-file-size": str(MAX_ALBUM_IMAGE_SIZE),
+        }
+        if obj and obj.pk:
+            widget_attrs["data-immediate-upload"] = "true"
+            widget_attrs["data-upload-url"] = reverse(
+                "admin:core_album_upload_photo",
+                args=(obj.pk,),
+                current_app=self.admin_site.name,
+            )
+            bulk_photos_field.help_text = (
+                "Select up to 20 images. Upload starts immediately and shows progress per photo."
+            )
+        else:
+            widget_attrs["data-immediate-upload"] = "false"
+            widget_attrs.pop("data-upload-url", None)
+            bulk_photos_field.help_text = (
+                "Upload up to 20 images at once. Save the album once before instant uploads become available."
+            )
+        bulk_photos_field.widget.attrs = widget_attrs
+        return form
+
+    def upload_photo_view(self, request, object_id):
+        if request.method != "POST":
+            return HttpResponseNotAllowed(["POST"])
+
+        album = get_object_or_404(Album, pk=object_id)
+        if not self.has_change_permission(request, album):
+            return JsonResponse({"error": "You do not have permission to upload photos to this album."}, status=403)
+
+        uploaded_file = request.FILES.get("photo")
+        try:
+            cleaned_file = validate_album_photo_upload(uploaded_file)
+        except ValidationError as exc:
+            return JsonResponse({"error": "; ".join(exc.messages)}, status=400)
+
+        photo = Photo.objects.create(
+            album=album,
+            image=cleaned_file,
+            caption=(request.POST.get("caption") or "").strip(),
+        )
+        return JsonResponse(
+            {
+                "id": photo.pk,
+                "image_url": photo.image.url,
+                "caption": photo.caption or "",
+                "name": photo.image.name.rsplit("/", 1)[-1],
+            },
+            status=201,
+        )
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
