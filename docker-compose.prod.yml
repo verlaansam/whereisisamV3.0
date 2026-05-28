@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ${PROD_BACKEND_IMAGE}
+    image: ${PROD_BACKEND_IMAGE:-ghcr.io/verlaansam/whereisisam-backend:latest}
     pull_policy: always
     container_name: whereissam_backend
     environment:
@@ -50,7 +50,7 @@ services:
       retries: 3
 
   weather_fetcher:
-    image: ${PROD_BACKEND_IMAGE}
+    image: ${PROD_BACKEND_IMAGE:-ghcr.io/verlaansam/whereisisam-backend:latest}
     pull_policy: always
     container_name: whereissam_weather_fetcher
     environment:
@@ -76,15 +76,15 @@ services:
       - /bin/sh
       - -lc
       - |
-        echo "Starting hourly weather fetcher (interval: ${WEATHER_FETCH_INTERVAL_SECONDS}s)"
+        echo "Starting hourly weather fetcher (interval: $${WEATHER_FETCH_INTERVAL_SECONDS}s)"
         while true; do
           date -u +"[%Y-%m-%dT%H:%M:%SZ] Running fetch_weather_vlieland"
           python manage.py fetch_weather_vlieland || true
-          sleep "${WEATHER_FETCH_INTERVAL_SECONDS}"
+          sleep "$${WEATHER_FETCH_INTERVAL_SECONDS}"
         done
 
   frontend:
-    image: ${PROD_FRONTEND_IMAGE}
+    image: ${PROD_FRONTEND_IMAGE:-ghcr.io/verlaansam/whereisisam-frontend:latest}
     pull_policy: always
     container_name: whereissam_frontend
     depends_on:
